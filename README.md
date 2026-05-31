@@ -337,3 +337,14 @@ git commit -m "estabilidade premium backup alertas certificado"
 git push
 ```
 Depois faça Deploy Latest Commit no Render.
+
+
+## Correção auto-login admin
+
+Corrigido:
+- O site não entra mais direto como administrador por token salvo.
+- Token antigo de admin é limpo ao abrir o site.
+- Admin precisa clicar em Entrar e fazer login novamente.
+- Aluno ainda pode continuar logado normalmente.
+
+Caso ainda entre direto, limpe o cache/localStorage do navegador.
