@@ -213,3 +213,21 @@ git commit -m "frontend limpo definitivo"
 git push
 ```
 Depois, no Render, clique em Deploy Latest Commit.
+
+
+## Melhorias desta versão
+
+- Tema claro/escuro
+- Player profissional com lista lateral de aulas
+- Próxima aula e aula anterior
+- Dashboard admin com gráfico simples
+- Certificado com layout melhor e impressão/PDF
+- Mantém Pix manual, aprovação admin, PDFs, vídeos e quizzes
+
+Atualização:
+```bash
+git add .
+git commit -m "player tema dashboard certificado"
+git push
+```
+Depois faça Deploy Latest Commit no Render.
