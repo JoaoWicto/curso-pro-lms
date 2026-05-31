@@ -162,6 +162,22 @@ async function init() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+
+    CREATE TABLE IF NOT EXISTS manual_submissions (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      answer_text TEXT DEFAULT '',
+      file_url TEXT DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'pending',
+      grade INTEGER,
+      feedback TEXT DEFAULT '',
+      reviewed_by INTEGER,
+      reviewed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS logs (
       id SERIAL PRIMARY KEY,
       user_id INTEGER,

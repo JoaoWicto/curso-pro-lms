@@ -76,6 +76,27 @@ async function ensureAssessmentAdvancedColumns() {
 }
 ensureAssessmentAdvancedColumns().catch(err => console.error('Erro ao ajustar avaliações:', err));
 
+async function ensureFinalPlusTables() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS manual_submissions (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      answer_text TEXT DEFAULT '',
+      file_url TEXT DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'pending',
+      grade INTEGER,
+      feedback TEXT DEFAULT '',
+      reviewed_by INTEGER,
+      reviewed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+}
+ensureFinalPlusTables().catch(err => console.error('Erro ao criar tabelas finais:', err));
+
+
 
 
 const upload = multer({
@@ -291,6 +312,21 @@ app.post('/api/student/course/:id/certificate', auth, async (req, res) => {
   res.json({ certificate: cert });
 });
 
+
+app.get('/certificado/:code', async (req, res) => {
+  const cert = await one(`
+    SELECT cert.*, u.name student_name, c.title course_title, c.workload, c.teacher
+    FROM certificates cert
+    JOIN users u ON u.id=cert.user_id
+    JOIN courses c ON c.id=cert.course_id
+    WHERE cert.code=$1
+  `, [req.params.code]);
+  if (!cert) {
+    return res.status(404).send('<h1>Certificado não encontrado</h1><p>O código informado não foi localizado.</p>');
+  }
+  res.send(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Certificado válido</title><style>body{font-family:Arial,sans-serif;background:#f6f8fc;color:#111827;display:grid;place-items:center;min-height:100vh;margin:0}.card{background:#fff;border:1px solid #e5e7eb;border-radius:24px;padding:34px;max-width:720px;box-shadow:0 18px 45px rgba(15,23,42,.10);text-align:center}.ok{color:#16a34a;font-weight:900}.code{background:#f1f5f9;border-radius:12px;padding:12px;margin-top:14px}</style></head><body><div class="card"><h1 class="ok">Certificado válido</h1><p>Certificamos que <strong>${cert.student_name}</strong> concluiu o curso <strong>${cert.course_title}</strong>.</p><p>Carga horária: <strong>${cert.workload || '-'}</strong></p><p>Professor: <strong>${cert.teacher || '-'}</strong></p><p>Emitido em: <strong>${new Date(cert.issued_at).toLocaleDateString('pt-BR')}</strong></p><div class="code">Código: <strong>${cert.code}</strong></div></div></body></html>`);
+});
+
 app.get('/api/certificate/:code', async (req, res) => {
   const cert = await one(`
     SELECT cert.*, u.name student_name, c.title course_title, c.workload, c.teacher
@@ -405,6 +441,67 @@ app.delete('/api/admin/students/:id', auth, admin, async (req, res) => {
   res.json({ ok: true });
 });
 
+
+
+app.put('/api/admin/students/:id', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  const { name, email, phone, password, status } = req.body;
+  const user = await one('SELECT * FROM users WHERE id=$1 AND role=$2', [id, 'student']);
+  if (!user) return res.status(404).json({ error: 'Aluno não encontrado' });
+  const hash = password ? bcrypt.hashSync(password, 10) : user.password_hash;
+  await query(
+    'UPDATE users SET name=$1,email=$2,phone=$3,password_hash=$4,status=$5 WHERE id=$6 AND role=$7',
+    [name || user.name, email || user.email, phone || '', hash, status || user.status || 'active', id, 'student']
+  );
+  await log(req.user.id, `Aluno editado: ${name || user.name}`);
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/students/:id/block', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  const user = await one('SELECT * FROM users WHERE id=$1 AND role=$2', [id, 'student']);
+  if (!user) return res.status(404).json({ error: 'Aluno não encontrado' });
+  const nextStatus = user.status === 'blocked' ? 'active' : 'blocked';
+  await query('UPDATE users SET status=$1 WHERE id=$2 AND role=$3', [nextStatus, id, 'student']);
+  await query('UPDATE enrollments SET access_status=$1 WHERE user_id=$2', [nextStatus === 'blocked' ? 'blocked' : 'active', id]);
+  await log(req.user.id, `${nextStatus === 'blocked' ? 'Bloqueou' : 'Liberou'} aluno: ${user.name}`);
+  res.json({ ok: true, status: nextStatus });
+});
+
+app.delete('/api/admin/students/:id', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  const user = await one('SELECT * FROM users WHERE id=$1 AND role=$2', [id, 'student']);
+  if (!user) return res.status(404).json({ error: 'Aluno não encontrado' });
+  await query('DELETE FROM users WHERE id=$1 AND role=$2', [id, 'student']);
+  await log(req.user.id, `Aluno excluído: ${user.name}`);
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/students/:id/history', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  const user = await one('SELECT id,name,email,phone,status,created_at FROM users WHERE id=$1 AND role=$2', [id, 'student']);
+  if (!user) return res.status(404).json({ error: 'Aluno não encontrado' });
+  const enrollments = await many(`
+    SELECT e.*, c.title course_title FROM enrollments e
+    JOIN courses c ON c.id=e.course_id WHERE e.user_id=$1
+  `, [id]);
+  const payments = await many(`
+    SELECT p.*, c.title course_title FROM payments p
+    JOIN courses c ON c.id=p.course_id WHERE p.user_id=$1 ORDER BY p.id DESC
+  `, [id]);
+  const attempts = await many(`
+    SELECT aa.*, a.title assessment_title, a.type, a.min_score, c.title course_title
+    FROM assessment_attempts aa
+    JOIN assessments a ON a.id=aa.assessment_id
+    JOIN courses c ON c.id=a.course_id
+    WHERE aa.user_id=$1 ORDER BY aa.id DESC
+  `, [id]);
+  const submissions = await many(`
+    SELECT ms.*, c.title course_title FROM manual_submissions ms
+    JOIN courses c ON c.id=ms.course_id WHERE ms.user_id=$1 ORDER BY ms.id DESC
+  `, [id]);
+  res.json({ user, enrollments, payments, attempts, submissions });
+});
 
 app.get('/api/admin/payments', auth, admin, async (req, res) => {
   const payments = await many(`
@@ -576,6 +673,54 @@ app.get('/api/admin/assessment-results', auth, admin, async (req, res) => {
     ORDER BY aa.id DESC
   `);
   res.json({ results });
+});
+
+
+/* ATIVIDADES ESCRITAS / ANEXOS / CORREÇÃO MANUAL */
+app.post('/api/student/manual-submissions', auth, upload.single('file'), async (req, res) => {
+  const { course_id, title, answer_text } = req.body;
+  const enrollment = await one('SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND access_status=$3', [req.user.id, Number(course_id), 'active']);
+  if (!enrollment) return res.status(403).json({ error: 'Acesso bloqueado' });
+  const fileUrl = req.file ? await uploadFile(req.file, 'curso-pro/manual-submissions') : '';
+  const result = await query(
+    'INSERT INTO manual_submissions (user_id,course_id,title,answer_text,file_url,status) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+    [req.user.id, Number(course_id), title || 'Atividade escrita', answer_text || '', fileUrl, 'pending']
+  );
+  await log(req.user.id, `Atividade escrita enviada: ${title || 'Atividade'}`);
+  res.json({ submission: result.rows[0] });
+});
+
+app.get('/api/student/manual-submissions', auth, async (req, res) => {
+  const submissions = await many(`
+    SELECT ms.*, c.title course_title FROM manual_submissions ms
+    JOIN courses c ON c.id=ms.course_id
+    WHERE ms.user_id=$1 ORDER BY ms.id DESC
+  `, [req.user.id]);
+  res.json({ submissions });
+});
+
+app.get('/api/admin/manual-submissions', auth, admin, async (req, res) => {
+  const submissions = await many(`
+    SELECT ms.*, u.name student_name, u.email, c.title course_title
+    FROM manual_submissions ms
+    JOIN users u ON u.id=ms.user_id
+    JOIN courses c ON c.id=ms.course_id
+    ORDER BY ms.id DESC
+  `);
+  res.json({ submissions });
+});
+
+app.put('/api/admin/manual-submissions/:id/grade', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  const { grade, feedback, status } = req.body;
+  const sub = await one('SELECT * FROM manual_submissions WHERE id=$1', [id]);
+  if (!sub) return res.status(404).json({ error: 'Atividade não encontrada' });
+  await query(
+    'UPDATE manual_submissions SET grade=$1, feedback=$2, status=$3, reviewed_by=$4, reviewed_at=NOW() WHERE id=$5',
+    [grade === '' || grade === undefined ? null : Number(grade), feedback || '', status || 'reviewed', req.user.id, id]
+  );
+  await log(req.user.id, `Atividade corrigida #${id}`);
+  res.json({ ok: true });
 });
 
 app.get('/api/admin/reports', auth, admin, async (req, res) => {

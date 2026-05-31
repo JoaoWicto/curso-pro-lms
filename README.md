@@ -292,3 +292,25 @@ git commit -m "avaliacoes avancadas notas tempo relatorio"
 git push
 ```
 Depois faça Deploy Latest Commit no Render.
+
+
+## Pacote final plus
+
+Adicionado:
+- Editar aluno no admin
+- Bloquear/liberar aluno manualmente
+- Resetar senha do aluno
+- Histórico completo do aluno
+- Atividade escrita com texto e anexo
+- Correção manual com nota e feedback
+- Painel admin de correções
+- Certificado com QR Code de validação
+- Página pública `/certificado/CODIGO`
+
+Atualização:
+```bash
+git add .
+git commit -m "final plus aluno atividade certificado qr"
+git push
+```
+Depois faça Deploy Latest Commit no Render.
