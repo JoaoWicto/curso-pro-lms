@@ -119,6 +119,43 @@ async function init() {
       UNIQUE(user_id, course_id)
     );
 
+
+    CREATE TABLE IF NOT EXISTS assessments (
+      id SERIAL PRIMARY KEY,
+      course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      type TEXT NOT NULL DEFAULT 'activity',
+      max_attempts INTEGER NOT NULL DEFAULT 2,
+      active BOOLEAN NOT NULL DEFAULT TRUE,
+      released BOOLEAN NOT NULL DEFAULT TRUE,
+      position INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS assessment_questions (
+      id SERIAL PRIMARY KEY,
+      assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+      question TEXT NOT NULL,
+      option_a TEXT NOT NULL,
+      option_b TEXT NOT NULL,
+      option_c TEXT DEFAULT '',
+      option_d TEXT DEFAULT '',
+      correct_option INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS assessment_attempts (
+      id SERIAL PRIMARY KEY,
+      assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      score INTEGER NOT NULL,
+      correct_count INTEGER NOT NULL,
+      total_count INTEGER NOT NULL,
+      answers_json TEXT NOT NULL DEFAULT '{}',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS logs (
       id SERIAL PRIMARY KEY,
       user_id INTEGER,
@@ -156,6 +193,24 @@ async function init() {
       'INSERT INTO quiz_questions (lesson_id,question,option_a,option_b,option_c,option_d,correct_option) VALUES ($1,$2,$3,$4,$5,$6,$7)',
       [lesson.rows[0].id, 'Qual é o objetivo da primeira aula?', 'Finalizar o curso', 'Entender como o curso funciona', 'Emitir certificado', 'Ignorar conteúdo', 1]
     );
+
+    const assessment = await query(
+      'INSERT INTO assessments (course_id,title,description,type,max_attempts,active,released,position) VALUES ($1,$2,$3,$4,$5,TRUE,TRUE,1) RETURNING id',
+      [course.rows[0].id, 'Atividade de Fixação 1', 'Atividade inicial com duas tentativas.', 'activity', 2]
+    );
+    await query(
+      'INSERT INTO assessment_questions (assessment_id,question,option_a,option_b,option_c,option_d,correct_option) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [assessment.rows[0].id, 'Quantas tentativas a atividade possui?', 'Uma', 'Duas', 'Três', 'Ilimitadas', 1]
+    );
+    const exam = await query(
+      'INSERT INTO assessments (course_id,title,description,type,max_attempts,active,released,position) VALUES ($1,$2,$3,$4,$5,TRUE,FALSE,2) RETURNING id',
+      [course.rows[0].id, 'Prova Final', 'Prova normal liberada pelo administrador. Apenas uma tentativa.', 'exam', 1]
+    );
+    await query(
+      'INSERT INTO assessment_questions (assessment_id,question,option_a,option_b,option_c,option_d,correct_option) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [exam.rows[0].id, 'A prova normal pode ser refeita?', 'Sim, várias vezes', 'Sim, duas vezes', 'Não, apenas uma tentativa', 'Somente no domingo', 2]
+    );
+
   }
 
   console.log('Banco inicializado com sucesso.');

@@ -30,6 +30,46 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+async function ensureAssessmentTables() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS assessments (
+      id SERIAL PRIMARY KEY,
+      course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      type TEXT NOT NULL DEFAULT 'activity',
+      max_attempts INTEGER NOT NULL DEFAULT 2,
+      active BOOLEAN NOT NULL DEFAULT TRUE,
+      released BOOLEAN NOT NULL DEFAULT TRUE,
+      position INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS assessment_questions (
+      id SERIAL PRIMARY KEY,
+      assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+      question TEXT NOT NULL,
+      option_a TEXT NOT NULL,
+      option_b TEXT NOT NULL,
+      option_c TEXT DEFAULT '',
+      option_d TEXT DEFAULT '',
+      correct_option INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS assessment_attempts (
+      id SERIAL PRIMARY KEY,
+      assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      score INTEGER NOT NULL,
+      correct_count INTEGER NOT NULL,
+      total_count INTEGER NOT NULL,
+      answers_json TEXT NOT NULL DEFAULT '{}',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+}
+ensureAssessmentTables().catch(err => console.error('Erro ao criar tabelas de avaliações:', err));
+
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 500 * 1024 * 1024 }
@@ -398,6 +438,117 @@ app.post('/api/admin/questions', auth, admin, async (req, res) => {
 app.delete('/api/admin/questions/:id', auth, admin, async (req, res) => {
   await query('DELETE FROM quiz_questions WHERE id=$1', [Number(req.params.id)]);
   res.json({ ok: true });
+});
+
+
+/* ASSESSMENTS - QUIZ, ATIVIDADE, PROVA E RECUPERAÇÃO */
+app.get('/api/admin/courses/:id/assessments', auth, admin, async (req, res) => {
+  const courseId = Number(req.params.id);
+  const assessments = await many('SELECT * FROM assessments WHERE course_id=$1 ORDER BY position,id', [courseId]);
+  res.json({ assessments });
+});
+
+app.post('/api/admin/assessments', auth, admin, async (req, res) => {
+  const { course_id, title, description, type, max_attempts, released, active, position } = req.body;
+  const normalizedType = type || 'activity';
+  const attempts = normalizedType === 'activity' || normalizedType === 'quiz' ? 2 : 1;
+  const result = await query(
+    'INSERT INTO assessments (course_id,title,description,type,max_attempts,released,active,position) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
+    [course_id, title, description || '', normalizedType, Number(max_attempts || attempts), released === true || released === 'true', active === false || active === 'false' ? false : true, Number(position || 0)]
+  );
+  await log(req.user.id, `Avaliação criada: ${title}`);
+  res.json({ id: result.rows[0].id });
+});
+
+app.put('/api/admin/assessments/:id', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  const old = await one('SELECT * FROM assessments WHERE id=$1', [id]);
+  if (!old) return res.status(404).json({ error: 'Avaliação não encontrada' });
+  const { title, description, type, max_attempts, released, active, position } = req.body;
+  await query(
+    'UPDATE assessments SET title=$1,description=$2,type=$3,max_attempts=$4,released=$5,active=$6,position=$7 WHERE id=$8',
+    [title || old.title, description || '', type || old.type, Number(max_attempts || old.max_attempts), released === true || released === 'true', active === false || active === 'false' ? false : true, Number(position || old.position || 0), id]
+  );
+  await log(req.user.id, `Avaliação editada: ${title || old.title}`);
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/assessments/:id/toggle-release', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  const a = await one('SELECT * FROM assessments WHERE id=$1', [id]);
+  if (!a) return res.status(404).json({ error: 'Avaliação não encontrada' });
+  await query('UPDATE assessments SET released=$1 WHERE id=$2', [!a.released, id]);
+  await log(req.user.id, `${!a.released ? 'Liberou' : 'Bloqueou'} avaliação: ${a.title}`);
+  res.json({ ok: true, released: !a.released });
+});
+
+app.delete('/api/admin/assessments/:id', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  await query('DELETE FROM assessments WHERE id=$1', [id]);
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/assessments/:id/questions', auth, admin, async (req, res) => {
+  const questions = await many('SELECT * FROM assessment_questions WHERE assessment_id=$1 ORDER BY id', [Number(req.params.id)]);
+  res.json({ questions });
+});
+
+app.post('/api/admin/assessment-questions', auth, admin, async (req, res) => {
+  const { assessment_id, question, option_a, option_b, option_c, option_d, correct_option } = req.body;
+  const result = await query(
+    'INSERT INTO assessment_questions (assessment_id,question,option_a,option_b,option_c,option_d,correct_option) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
+    [assessment_id, question, option_a, option_b, option_c || '', option_d || '', Number(correct_option || 0)]
+  );
+  res.json({ id: result.rows[0].id });
+});
+
+app.delete('/api/admin/assessment-questions/:id', auth, admin, async (req, res) => {
+  await query('DELETE FROM assessment_questions WHERE id=$1', [Number(req.params.id)]);
+  res.json({ ok: true });
+});
+
+app.get('/api/student/course/:id/assessments', auth, async (req, res) => {
+  const courseId = Number(req.params.id);
+  const enrollment = await one('SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND access_status=$3', [req.user.id, courseId, 'active']);
+  if (!enrollment) return res.status(403).json({ error: 'Acesso bloqueado' });
+  const assessments = await many('SELECT * FROM assessments WHERE course_id=$1 AND active=TRUE ORDER BY position,id', [courseId]);
+  const attempts = await many('SELECT * FROM assessment_attempts WHERE user_id=$1 ORDER BY id DESC', [req.user.id]);
+  res.json({ assessments, attempts });
+});
+
+app.get('/api/student/assessments/:id', auth, async (req, res) => {
+  const id = Number(req.params.id);
+  const assessment = await one('SELECT * FROM assessments WHERE id=$1 AND active=TRUE', [id]);
+  if (!assessment) return res.status(404).json({ error: 'Avaliação não encontrada' });
+  const enrollment = await one('SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND access_status=$3', [req.user.id, assessment.course_id, 'active']);
+  if (!enrollment) return res.status(403).json({ error: 'Acesso bloqueado' });
+  if (!assessment.released) return res.status(403).json({ error: 'Avaliação ainda não liberada pelo administrador' });
+  const count = await one('SELECT COUNT(*)::int total FROM assessment_attempts WHERE user_id=$1 AND assessment_id=$2', [req.user.id, id]);
+  if (count.total >= assessment.max_attempts) return res.status(403).json({ error: 'Tentativas esgotadas' });
+  const questions = await many('SELECT id,question,option_a,option_b,option_c,option_d FROM assessment_questions WHERE assessment_id=$1 ORDER BY id', [id]);
+  res.json({ assessment, questions, attempts_used: count.total, attempts_left: assessment.max_attempts - count.total });
+});
+
+app.post('/api/student/assessments/:id/submit', auth, async (req, res) => {
+  const id = Number(req.params.id);
+  const answers = req.body.answers || {};
+  const assessment = await one('SELECT * FROM assessments WHERE id=$1 AND active=TRUE', [id]);
+  if (!assessment) return res.status(404).json({ error: 'Avaliação não encontrada' });
+  const enrollment = await one('SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND access_status=$3', [req.user.id, assessment.course_id, 'active']);
+  if (!enrollment) return res.status(403).json({ error: 'Acesso bloqueado' });
+  if (!assessment.released) return res.status(403).json({ error: 'Avaliação ainda não liberada pelo administrador' });
+  const count = await one('SELECT COUNT(*)::int total FROM assessment_attempts WHERE user_id=$1 AND assessment_id=$2', [req.user.id, id]);
+  if (count.total >= assessment.max_attempts) return res.status(403).json({ error: 'Tentativas esgotadas' });
+  const questions = await many('SELECT * FROM assessment_questions WHERE assessment_id=$1 ORDER BY id', [id]);
+  let correct = 0;
+  for (const q of questions) if (Number(answers[q.id]) === Number(q.correct_option)) correct++;
+  const total = questions.length || 1;
+  const score = Math.round((correct / total) * 100);
+  await query(
+    'INSERT INTO assessment_attempts (assessment_id,user_id,score,correct_count,total_count,answers_json) VALUES ($1,$2,$3,$4,$5,$6)',
+    [id, req.user.id, score, correct, questions.length, JSON.stringify(answers)]
+  );
+  res.json({ score, correct, total: questions.length, attempts_used: count.total + 1, attempts_left: assessment.max_attempts - (count.total + 1) });
 });
 
 app.get('/api/admin/reports', auth, admin, async (req, res) => {

@@ -250,3 +250,26 @@ git commit -m "perfil editar cursos aulas excluir alunos"
 git push
 ```
 Depois faça Deploy Latest Commit no Render.
+
+
+## Sistema de avaliações adicionado
+
+Tipos:
+- Quiz: 2 tentativas
+- Atividade: 2 tentativas
+- Prova normal: 1 tentativa
+- Prova de recuperação: 1 tentativa
+- Provas e avaliações podem ser liberadas/bloqueadas pelo administrador
+
+Rotas e tabelas adicionadas:
+- assessments
+- assessment_questions
+- assessment_attempts
+
+Atualização:
+```bash
+git add .
+git commit -m "sistema de provas atividades e tentativas"
+git push
+```
+Depois faça Deploy Latest Commit no Render.
