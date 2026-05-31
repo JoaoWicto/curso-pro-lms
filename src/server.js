@@ -302,8 +302,20 @@ app.post('/api/student/course/:id/certificate', auth, async (req, res) => {
   const enrollment = await one('SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND access_status=$3', [req.user.id, courseId, 'active']);
   if (!enrollment) return res.status(403).json({ error: 'Acesso bloqueado' });
   const min = Number(await getSetting('min_certificate_score') || 70);
+  const payment = await one('SELECT * FROM payments WHERE user_id=$1 AND course_id=$2 AND status=$3', [req.user.id, courseId, 'paid']);
+  if (!payment) return res.status(400).json({ error: 'Certificado bloqueado: pagamento ainda não aprovado.' });
+  const progressRow = await one('SELECT progress FROM enrollments WHERE user_id=$1 AND course_id=$2', [req.user.id, courseId]);
+  if ((progressRow?.progress || 0) < 100) return res.status(400).json({ error: 'Certificado bloqueado: conclua 100% das aulas.' });
   const avg = await averageQuiz(req.user.id, courseId);
   if (avg < min) return res.status(400).json({ error: `Média mínima não atingida. Média atual: ${avg}%` });
+  try {
+    const failed = await one(`
+      SELECT COUNT(*)::int total FROM assessment_attempts aa
+      JOIN assessments a ON a.id=aa.assessment_id
+      WHERE aa.user_id=$1 AND a.course_id=$2 AND aa.score < COALESCE(a.min_score,70)
+    `, [req.user.id, courseId]);
+    if ((failed?.total || 0) > 0) return res.status(400).json({ error: 'Certificado bloqueado: existe avaliação reprovada.' });
+  } catch {}
   let cert = await one('SELECT * FROM certificates WHERE user_id=$1 AND course_id=$2', [req.user.id, courseId]);
   if (!cert) {
     const code = `CERT-${nanoid(10).toUpperCase()}`;
@@ -721,6 +733,70 @@ app.put('/api/admin/manual-submissions/:id/grade', auth, admin, async (req, res)
   );
   await log(req.user.id, `Atividade corrigida #${id}`);
   res.json({ ok: true });
+});
+
+
+/* BACKUP, NOTIFICAÇÕES E ESTABILIDADE */
+app.get('/api/admin/backup', auth, admin, async (req, res) => {
+  const data = {
+    generated_at: new Date().toISOString(),
+    users: await many('SELECT id,name,email,phone,role,status,created_at FROM users ORDER BY id'),
+    courses: await many('SELECT * FROM courses ORDER BY id'),
+    lessons: await many('SELECT * FROM lessons ORDER BY id'),
+    enrollments: await many('SELECT * FROM enrollments ORDER BY id'),
+    payments: await many('SELECT * FROM payments ORDER BY id'),
+    quiz_results: await many('SELECT * FROM quiz_results ORDER BY id'),
+    certificates: await many('SELECT * FROM certificates ORDER BY id'),
+    logs: await many('SELECT * FROM logs ORDER BY id DESC LIMIT 500')
+  };
+  try {
+    data.assessments = await many('SELECT * FROM assessments ORDER BY id');
+    data.assessment_attempts = await many('SELECT * FROM assessment_attempts ORDER BY id');
+  } catch {}
+  try {
+    data.manual_submissions = await many('SELECT * FROM manual_submissions ORDER BY id');
+  } catch {}
+  res.json(data);
+});
+
+app.get('/api/admin/notifications', auth, admin, async (req, res) => {
+  const pendingPayments = await one('SELECT COUNT(*)::int total FROM payments WHERE status=$1', ['pending']);
+  let pendingManual = { total: 0 };
+  try { pendingManual = await one('SELECT COUNT(*)::int total FROM manual_submissions WHERE status=$1', ['pending']); } catch {}
+  const blockedStudents = await one('SELECT COUNT(*)::int total FROM users WHERE role=$1 AND status=$2', ['student', 'blocked']);
+  res.json({
+    notifications: [
+      { type: 'payment', title: 'Pagamentos pendentes', total: pendingPayments?.total || 0 },
+      { type: 'manual', title: 'Atividades para corrigir', total: pendingManual?.total || 0 },
+      { type: 'student', title: 'Alunos bloqueados', total: blockedStudents?.total || 0 }
+    ]
+  });
+});
+
+app.get('/api/admin/premium-dashboard', auth, admin, async (req, res) => {
+  const students = await one('SELECT COUNT(*)::int total FROM users WHERE role=$1', ['student']);
+  const activeStudents = await one("SELECT COUNT(*)::int total FROM users WHERE role='student' AND status <> 'blocked'");
+  const blockedStudents = await one("SELECT COUNT(*)::int total FROM users WHERE role='student' AND status = 'blocked'");
+  const pendingPayments = await one("SELECT COUNT(*)::int total FROM payments WHERE status='pending'");
+  const paidRevenue = await one("SELECT COALESCE(SUM(amount),0) total FROM payments WHERE status='paid'");
+  const courses = await one('SELECT COUNT(*)::int total FROM courses');
+  let failed = { total: 0 };
+  try {
+    failed = await one(`
+      SELECT COUNT(*)::int total FROM assessment_attempts aa
+      JOIN assessments a ON a.id=aa.assessment_id
+      WHERE aa.score < COALESCE(a.min_score,70)
+    `);
+  } catch {}
+  res.json({
+    students: students.total,
+    activeStudents: activeStudents.total,
+    blockedStudents: blockedStudents.total,
+    pendingPayments: pendingPayments.total,
+    paidRevenue: paidRevenue.total,
+    courses: courses.total,
+    failedAssessments: failed.total
+  });
 });
 
 app.get('/api/admin/reports', auth, admin, async (req, res) => {

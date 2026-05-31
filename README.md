@@ -314,3 +314,26 @@ git commit -m "final plus aluno atividade certificado qr"
 git push
 ```
 Depois faça Deploy Latest Commit no Render.
+
+
+## Etapa estabilidade premium
+
+Adicionado:
+- Dashboard premium com alertas
+- Backup JSON completo pelo admin
+- Notificações de pendências
+- Trava de certificado:
+  - pagamento aprovado
+  - 100% aulas concluídas
+  - média mínima
+  - sem avaliação reprovada
+- Botão fixo de compra no mobile
+- Indicadores de alunos, pendências e reprovados
+
+Atualização:
+```bash
+git add .
+git commit -m "estabilidade premium backup alertas certificado"
+git push
+```
+Depois faça Deploy Latest Commit no Render.
