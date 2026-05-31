@@ -1,9 +1,1 @@
-{
-  "name": "CursoPro LMS",
-  "short_name": "CursoPro",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#07111f",
-  "theme_color": "#2563eb",
-  "icons": []
-}
+{"name":"CursoPro LMS","short_name":"CursoPro","start_url":"/","display":"standalone","background_color":"#f6f8fc","theme_color":"#2563eb"}

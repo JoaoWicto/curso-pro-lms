@@ -1,80 +1,465 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>CursoPro LMS</title>
+<meta name="theme-color" content="#0f172a">
 <style>
-:root{--bg:#07111f;--panel:#0f172a;--card:#111827;--line:#263247;--text:#f8fafc;--muted:#94a3b8;--brand:#2563eb;--brand2:#7c3aed;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at top,#172554,#07111f 45%);color:var(--text);min-height:100vh}button,input,textarea,select{font:inherit}input,textarea,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0b1220;color:var(--text);margin-top:8px}textarea{min-height:86px}button{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer}.btn{background:linear-gradient(135deg,var(--brand),var(--brand2));color:white}.btn2{background:#1f2937;color:white;border:1px solid var(--line)}.ok{background:rgba(34,197,94,.15);color:var(--ok);border:1px solid rgba(34,197,94,.35)}.bad{background:rgba(239,68,68,.15);color:var(--bad);border:1px solid rgba(239,68,68,.35)}.warn{background:rgba(245,158,11,.15);color:var(--warn);border:1px solid rgba(245,158,11,.35)}p{color:var(--muted);line-height:1.5}.hide{display:none!important}.badge{display:inline-flex;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:900}.card{background:rgba(17,24,39,.92);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 20px 55px rgba(0,0,0,.22)}.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.actions{display:flex;gap:8px;flex-wrap:wrap}.small{font-size:12px;color:var(--muted)}.logo{display:flex;gap:12px;align-items:center}.mark{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:grid;place-items:center;font-weight:950}.screen{display:none}.screen.active{display:block}.landing{padding:24px}.nav{max-width:1180px;margin:auto;display:flex;align-items:center;justify-content:space-between}.hero{max-width:1180px;margin:60px auto;display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center}.hero h1{font-size:54px;line-height:1;margin:16px 0}.price{font-size:38px;color:var(--ok);font-weight:950;margin:12px 0}.auth{min-height:100vh;display:grid;place-items:center;padding:20px}.auth .card{width:100%;max-width:430px}.app{display:none;min-height:100vh}.side{position:fixed;inset:0 auto 0 0;width:270px;background:rgba(15,23,42,.96);border-right:1px solid var(--line);padding:18px;display:flex;flex-direction:column}.side button{width:100%;text-align:left;margin-top:7px;background:transparent;color:var(--muted);border:1px solid transparent}.side button.active,.side button:hover{background:rgba(37,99,235,.15);border-color:rgba(37,99,235,.35);color:white}.main{margin-left:270px}.top{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(15,23,42,.8);border-bottom:1px solid var(--line);position:sticky;top:0}.content{padding:24px}.table{overflow:auto;border:1px solid var(--line);border-radius:15px}table{width:100%;border-collapse:collapse;min-width:760px}td,th{padding:12px;border-bottom:1px solid var(--line);text-align:left;color:var(--muted)}th{background:#0b1220;color:#dbeafe}.lesson{padding:15px;border:1px solid var(--line);background:#0b1220;border-radius:16px;margin-top:10px}.video{margin-top:10px;border-radius:14px;overflow:hidden;background:#000}.video iframe,.video video{width:100%;height:280px;border:0;display:block}.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;place-items:center;padding:20px;z-index:50}.modal>div{width:min(850px,96vw);max-height:90vh;overflow:auto}.progress{height:8px;background:#020617;border-radius:999px;overflow:hidden;margin-top:8px}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--brand),#38bdf8)}@media(max-width:900px){.hero,.g2,.g3{grid-template-columns:1fr}.hero h1{font-size:38px}.side{position:relative;width:100%}.main{margin-left:0}.app{flex-direction:column}}
+:root{
+  --bg:#f6f8fc;
+  --dark:#0f172a;
+  --panel:#111827;
+  --panel2:#1f2937;
+  --card:#ffffff;
+  --line:#e5e7eb;
+  --text:#111827;
+  --muted:#64748b;
+  --primary:#2563eb;
+  --primary2:#1d4ed8;
+  --success:#16a34a;
+  --warning:#d97706;
+  --danger:#dc2626;
+  --radius:18px;
+  --shadow:0 18px 45px rgba(15,23,42,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button,input,textarea,select{font:inherit}
+button{border:0;border-radius:12px;padding:11px 15px;font-weight:800;cursor:pointer;transition:.18s}
+button:hover{transform:translateY(-1px)}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+input,textarea,select{width:100%;border:1px solid var(--line);background:#fff;color:var(--text);border-radius:12px;padding:12px 13px;margin-top:8px;outline:none}
+textarea{min-height:100px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+p{color:var(--muted);line-height:1.55}
+a{color:var(--primary);text-decoration:none}
+h1,h2,h3{letter-spacing:-.03em}
+.hidden{display:none!important}
+.btn{background:var(--primary);color:#fff}
+.btn:hover{background:var(--primary2)}
+.btn-dark{background:#111827;color:#fff}
+.btn-light{background:#eef2ff;color:#1e40af}
+.btn-success{background:#dcfce7;color:#166534}
+.btn-danger{background:#fee2e2;color:#991b1b}
+.btn-warning{background:#fef3c7;color:#92400e}
+.btn-small{font-size:12px;padding:8px 10px;border-radius:10px}
+.badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900}
+.badge-ok{background:#dcfce7;color:#166534}
+.badge-warn{background:#fef3c7;color:#92400e}
+.badge-bad{background:#fee2e2;color:#991b1b}
+.badge-info{background:#dbeafe;color:#1e40af}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.row{display:flex;align-items:center;gap:10px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.small{font-size:12px;color:var(--muted)}
+.logo{display:flex;align-items:center;gap:12px;font-weight:950}
+.logo-mark{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:950}
+.screen{display:none;min-height:100vh}
+.screen.active{display:block}
+.toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:14px 16px;border-radius:14px;box-shadow:var(--shadow);display:none;z-index:9999}
+.loading{position:fixed;inset:0;background:rgba(255,255,255,.75);display:none;align-items:center;justify-content:center;z-index:9998;backdrop-filter:blur(4px)}
+.spinner{width:34px;height:34px;border:4px solid #dbeafe;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Landing */
+.landing-header{max-width:1180px;margin:auto;padding:22px;display:flex;align-items:center;justify-content:space-between}
+.hero{max-width:1180px;margin:26px auto 0;padding:34px 22px 70px;display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:center}
+.hero h1{font-size:58px;line-height:.98;margin:18px 0;color:#0f172a}
+.hero h1 span{color:var(--primary)}
+.hero-card{background:#fff;border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:26px}
+.price{font-size:38px;font-weight:950;color:var(--success);margin:12px 0}
+.features{max-width:1180px;margin:0 auto 60px;padding:0 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feature{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px}
+
+/* Auth */
+.auth-wrap{min-height:100vh;display:grid;place-items:center;padding:22px}
+.auth-card{width:100%;max-width:440px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:24px;padding:28px}
+
+/* App */
+.app{display:none;min-height:100vh}
+.sidebar{position:fixed;inset:0 auto 0 0;width:280px;background:#0f172a;color:#fff;padding:20px;display:flex;flex-direction:column;z-index:50}
+.sidebar .logo p,.sidebar .small{color:#94a3b8}
+.nav-title{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#94a3b8;margin:24px 0 9px}
+.nav button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:transparent;color:#cbd5e1;border:1px solid transparent;margin-bottom:7px}
+.nav button.active,.nav button:hover{background:rgba(37,99,235,.22);border-color:rgba(147,197,253,.25);color:#fff}
+.main{margin-left:280px;min-height:100vh}
+.topbar{height:74px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:20}
+.content{padding:26px;max-width:1400px}
+.mobile-toggle{display:none}
+.stat{font-size:31px;font-weight:950;margin-top:6px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
+table{width:100%;border-collapse:collapse;min-width:780px}
+th,td{padding:14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:#f8fafc;color:#475569;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+td{color:#475569}
+td strong{color:#111827}
+.lesson{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff;margin-top:12px}
+.progress{height:9px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:8px}
+.progress span{display:block;height:100%;background:linear-gradient(90deg,#2563eb,#7c3aed)}
+.video-box{border-radius:16px;overflow:hidden;background:#000;margin-top:12px}
+.video-box iframe,.video-box video{width:100%;height:320px;border:0;display:block}
+.notice{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;border-radius:16px;padding:16px}
+.empty{padding:32px;text-align:center;background:#fff;border:1px dashed #cbd5e1;border-radius:18px}
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:100}
+.modal{width:min(860px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:24px;padding:24px;box-shadow:var(--shadow)}
+.quiz-option{display:block;width:100%;text-align:left;background:#f8fafc;border:1px solid var(--line);color:#111827;margin-top:10px}
+.quiz-option:hover{border-color:var(--primary)}
+@media(max-width:900px){
+  .hero,.features,.g2,.g3,.g4{grid-template-columns:1fr}
+  .hero h1{font-size:38px}
+  .landing-header{padding:18px}
+  .landing-header .actions{display:none}
+  .hero{padding-top:20px}
+  .sidebar{transform:translateX(-100%);transition:.2s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .topbar{padding:0 16px;height:68px}
+  .content{padding:16px}
+  .mobile-toggle{display:inline-flex}
+  .video-box iframe,.video-box video{height:220px}
+  .card{padding:18px}
+}
 </style>
 </head>
 <body>
-<section id="landing" class="screen landing active"><div class="nav"><div class="logo"><div class="mark">CP</div><div><b id="brand">CursoPro LMS</b><p class="small">Cursos online</p></div></div><button class="btn2" onclick="show('login')">Entrar</button></div><div class="hero"><div><span class="badge ok">Plataforma profissional</span><h1>Curso online com Pix manual e aprovação pelo admin</h1><p>O aluno compra, envia o comprovante, e você libera o acesso pelo painel.</p></div><div class="card"><h2>Comprar curso</h2><select id="buyCourse"></select><div id="coursePrice" class="price"></div><input id="regName" placeholder="Nome completo"><input id="regEmail" placeholder="E-mail"><input id="regPhone" placeholder="WhatsApp"><input id="regPass" type="password" placeholder="Senha"><button class="btn" style="width:100%;margin-top:12px" onclick="register()">Criar cadastro</button></div></div></section>
-<section id="login" class="screen auth"><div class="card"><div class="logo"><div class="mark">CP</div><div><b>Entrar</b><p class="small">Admin ou aluno</p></div></div><input id="loginEmail" placeholder="E-mail"><input id="loginPass" type="password" placeholder="Senha"><button class="btn" style="width:100%;margin-top:12px" onclick="login()">Entrar</button><button class="btn2" style="width:100%;margin-top:8px" onclick="show('landing')">Voltar</button><p class="small" style="margin-top:12px">Admin: admin@curso.local / admin123</p></div></section>
-<section id="app" class="app"><aside class="side"><div class="logo"><div class="mark">CP</div><div><b>CursoPro</b><p class="small" id="role"></p></div></div><div id="menu" style="margin-top:18px"></div><button class="btn2" style="margin-top:auto;text-align:center" onclick="logout()">Sair</button></aside><main class="main"><div class="top"><div><b id="title">Dashboard</b><p class="small" id="subtitle"></p></div><div class="actions" id="topActions"></div></div><div class="content" id="content"></div></main></section>
-<div class="modal" id="modal"><div class="card" id="modalBody"></div></div>
+<div id="loading" class="loading"><div class="spinner"></div></div>
+<div id="toast" class="toast"></div>
+
+<section id="landing" class="screen active">
+  <header class="landing-header">
+    <div class="logo"><div class="logo-mark">CP</div><div><div id="brandName">CursoPro LMS</div><p class="small">Plataforma de cursos online</p></div></div>
+    <div class="actions">
+      <button class="btn-light" onclick="App.showLogin()">Entrar</button>
+      <button class="btn" onclick="document.getElementById('checkout').scrollIntoView({behavior:'smooth'})">Comprar curso</button>
+    </div>
+  </header>
+  <main class="hero">
+    <div>
+      <span class="badge badge-info">Cursos online com acesso protegido</span>
+      <h1>Venda seu curso com <span>Pix manual, aulas e painel admin</span></h1>
+      <p>O aluno compra, envia comprovante e você aprova manualmente. Depois o sistema libera as aulas, PDFs, vídeos, quizzes e certificado.</p>
+      <div class="actions" style="margin-top:24px">
+        <button class="btn" onclick="document.getElementById('checkout').scrollIntoView({behavior:'smooth'})">Quero comprar</button>
+        <button class="btn-light" onclick="App.showLogin()">Já tenho acesso</button>
+      </div>
+    </div>
+    <div id="checkout" class="hero-card">
+      <h2>Comprar curso</h2>
+      <p>Crie sua conta para visualizar o Pix e enviar o comprovante.</p>
+      <select id="buyCourse"></select>
+      <div id="coursePrice" class="price">R$ 0,00</div>
+      <input id="regName" placeholder="Nome completo">
+      <input id="regEmail" placeholder="E-mail">
+      <input id="regPhone" placeholder="WhatsApp">
+      <input id="regPass" type="password" placeholder="Senha">
+      <button class="btn" style="width:100%;margin-top:12px" onclick="App.register()">Criar cadastro</button>
+    </div>
+  </main>
+  <section class="features">
+    <div class="feature"><h3>Pagamento manual</h3><p>Você usa sua chave Pix e aprova os comprovantes no painel.</p></div>
+    <div class="feature"><h3>Conteúdo completo</h3><p>Aulas com vídeos, PDFs, textos e quizzes para medir aprendizado.</p></div>
+    <div class="feature"><h3>Acesso seguro</h3><p>O aluno só acessa as aulas depois da liberação administrativa.</p></div>
+  </section>
+</section>
+
+<section id="loginScreen" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="logo"><div class="logo-mark">CP</div><div><strong>Entrar</strong><p class="small">Acesse sua conta</p></div></div>
+      <div style="height:18px"></div>
+      <input id="loginEmail" placeholder="E-mail">
+      <input id="loginPass" type="password" placeholder="Senha">
+      <button class="btn" style="width:100%;margin-top:12px" onclick="App.login()">Entrar</button>
+      <button class="btn-light" style="width:100%;margin-top:8px" onclick="App.showLanding()">Voltar</button>
+      <p class="small" style="margin-top:12px">Admin padrão: admin@curso.local / admin123</p>
+    </div>
+  </div>
+</section>
+
+<section id="app" class="app">
+  <aside id="sidebar" class="sidebar">
+    <div class="logo"><div class="logo-mark">CP</div><div><strong>CursoPro</strong><p id="roleText" class="small">Painel</p></div></div>
+    <div class="nav-title">Menu</div>
+    <nav id="menu" class="nav"></nav>
+    <button class="btn-dark" style="margin-top:auto;width:100%" onclick="App.logout()">Sair</button>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="row">
+        <button class="btn-light mobile-toggle" onclick="App.toggleMenu()">Menu</button>
+        <div><strong id="pageTitle">Dashboard</strong><p id="pageSub" class="small">Visão geral</p></div>
+      </div>
+      <div id="topActions" class="actions"></div>
+    </header>
+    <div id="content" class="content"></div>
+  </main>
+</section>
+
+<div id="modalBg" class="modal-bg" onclick="App.closeModal(event)">
+  <div id="modalBody" class="modal"></div>
+</div>
+
 <script>
-let token=localStorage.getItem('token')||'',me=null,page='dashboard',publicData={courses:[],settings:{}};
-const adminMenu=[['dashboard','Dashboard'],['courses','Cursos'],['lessons','Aulas'],['payments','Pagamentos'],['students','Alunos'],['reports','Relatórios'],['settings','Configurações']];
-const studentMenu=[['dashboard','Início'],['course','Meu curso'],['payment','Pagamento'],['certificate','Certificado']];
-function money(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
-function getEl(id){return document.getElementById(id)}
-function hideScreens(){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const appEl=getEl('app');
-  if(appEl) appEl.style.display='none';
-}
-function show(id){
-  hideScreens();
-  const target=getEl(id);
-  if(target) target.classList.add('active');
-  const sideEl=getEl('side');
-  if(sideEl) sideEl.classList.remove('open');
-}
-function toastMsg(t){
-  const el=getEl('toast');
-  if(!el) return;
-  el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',2800);
-}
-function toggleMenu(){const sideEl=getEl('side'); if(sideEl) sideEl.classList.toggle('open')}
-function statusBadge(s){return `<span class="badge ${s==='paid'||s==='active'?'ok':s==='rejected'?'bad':'warn'}">${s}</span>`}
-function safe(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-async function api(url,opt={}){opt.headers=opt.headers||{};if(!(opt.body instanceof FormData))opt.headers['Content-Type']='application/json';if(token)opt.headers.Authorization='Bearer '+token;const r=await fetch(url,opt);let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||'Erro na requisição');return j}
-async function loadPublic(){try{publicData=await api('/api/public');if(getEl('brand')) brand.textContent=publicData.settings.brand_name||'CursoPro LMS';if(getEl('buyCourse')){buyCourse.innerHTML=publicData.courses.map(c=>`<option value="${c.id}">${safe(c.title)}</option>`).join('');updatePrice()}}catch(e){console.error(e)}}
-function updatePrice(){const c=publicData.courses.find(x=>x.id==buyCourse.value);coursePrice.textContent=c?money(c.price):''}
-if(getEl('buyCourse')) buyCourse.onchange=updatePrice;
-async function register(){try{if(!regName.value||!regEmail.value||!regPass.value)return alert('Preencha nome, e-mail e senha.');const j=await api('/api/auth/register',{method:'POST',body:JSON.stringify({name:regName.value,email:regEmail.value,phone:regPhone.value,password:regPass.value,course_id:buyCourse.value})});token=j.token;localStorage.setItem('token',token);me=j.user;await openApp();toastMsg('Cadastro criado. Veja o Pix na aba Pagamento.')}catch(e){alert(e.message)}}
-async function login(){try{const j=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:loginEmail.value,password:loginPass.value})});token=j.token;localStorage.setItem('token',token);me=j.user;await openApp()}catch(e){alert(e.message)}}
-async function openApp(){
-  hideScreens();
-  const appEl=getEl('app');
-  if(appEl) appEl.style.display='flex';
-  if(!me){me=(await api('/api/me')).user}
-  page='dashboard';renderMenu();await render();
-}
-function logout(){token='';me=null;localStorage.removeItem('token');const sideEl=getEl('side');if(sideEl)sideEl.classList.remove('open');show('landing')}
-function renderMenu(){const m=me.role==='admin'?adminMenu:studentMenu;role.textContent=me.role==='admin'?'Administrador':'Aluno';menu.innerHTML=m.map(x=>`<button class="nav-btn ${page===x[0]?'active':''}" onclick="go('${x[0]}')"><span>${x[1]}</span></button>`).join('')}
-function go(p){page=p;const sideEl=getEl('side');if(sideEl)sideEl.classList.remove('open');renderMenu();render()}
-function setTitle(t,s=''){title.textContent=t;subtitle.textContent=s;topActions.innerHTML=''}
-async function render(){content.innerHTML='<div class="grid g3"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';try{me.role==='admin'?await renderAdmin():await renderStudent()}catch(e){content.innerHTML=`<div class="card"><h2>Erro</h2><p>${safe(e.message)}</p></div>`;console.error(e)}}
-async function renderAdmin(){if(page==='dashboard')return adminDashboard();if(page==='courses')return adminCourses();if(page==='lessons')return adminLessons();if(page==='payments')return adminPayments();if(page==='students')return adminStudents();if(page==='reports')return adminReports();if(page==='settings')return adminSettings()}
-async function adminDashboard(){setTitle('Dashboard','Visão geral');const d=await api('/api/admin/dashboard');content.innerHTML=`<div class="grid g3"><div class="card"><p>Alunos</p><h1>${d.users}</h1></div><div class="card"><p>Pendentes</p><h1>${d.pending}</h1></div><div class="card"><p>Receita</p><h1>${money(d.paid)}</h1></div></div><div class="card" style="margin-top:16px"><h2>Atividades</h2>${d.logs.map(l=>`<div class="lesson"><b>${l.action}</b><p>${l.created_at}</p></div>`).join('')}</div>`}
-async function adminCourses(){setTitle('Cursos','Cadastro de cursos');const d=await api('/api/admin/courses');content.innerHTML=`<div class="actions"><button class="btn" onclick="courseModal()">Novo curso</button></div><div class="grid g2" style="margin-top:16px">${d.courses.map(c=>`<div class="card"><h2>${c.title}</h2><p>${c.description}</p><p><b>${money(c.price)}</b> • ${c.workload}</p><div class="actions"><button class="bad" onclick="deleteCourse(${c.id})">Excluir</button></div></div>`).join('')}</div>`}
-async function adminLessons(){setTitle('Aulas','PDFs, vídeos e conteúdo');const c=await api('/api/admin/courses');let id=localStorage.courseId||c.courses[0]?.id||'';let html='<select id="courseSelect" onchange="localStorage.courseId=this.value;adminLessons()">'+c.courses.map(x=>`<option value="${x.id}" ${x.id==id?'selected':''}>${x.title}</option>`).join('')+'</select>';if(id){const l=await api('/api/admin/courses/'+id+'/lessons');html+=`<div class="actions" style="margin-top:12px"><button class="btn" onclick="lessonModal(${id})">Nova aula</button></div>${l.lessons.map(a=>`<div class="lesson"><h3>${a.title}</h3><p>${a.summary}</p><p>Status: ${a.active?'Ativa':'Bloqueada'}</p><div class="actions"><button class="bad" onclick="deleteLesson(${a.id})">Excluir</button><button class="btn" onclick="questions(${a.id})">Quiz</button></div></div>`).join('')}`}content.innerHTML='<div class="card">'+html+'</div>'}
-async function adminPayments(){setTitle('Pagamentos','Aprovação manual');const d=await api('/api/admin/payments');content.innerHTML=`<div class="table"><table><thead><tr><th>Aluno</th><th>Curso</th><th>Valor</th><th>Status</th><th>Comprovante</th><th>Ações</th></tr></thead><tbody>${d.payments.map(p=>`<tr><td>${p.student_name}<br>${p.email}</td><td>${p.course_title}</td><td>${money(p.amount)}</td><td><span class="badge ${p.status==='paid'?'ok':p.status==='rejected'?'bad':'warn'}">${p.status}</span></td><td>${p.receipt_file?`<a href="${p.receipt_file}" target="_blank">Abrir</a>`:'-'}</td><td><button class="ok" onclick="approve(${p.id})">Aprovar</button><button class="bad" onclick="rejectPay(${p.id})">Recusar</button></td></tr>`).join('')}</tbody></table></div>`}
-async function adminStudents(){setTitle('Alunos','Usuários cadastrados');const d=await api('/api/admin/students');content.innerHTML=`<div class="table"><table><thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Matrículas</th></tr></thead><tbody>${d.students.map(s=>`<tr><td>${s.name}</td><td>${s.email}</td><td>${s.phone||'-'}</td><td>${s.enrollments}</td></tr>`).join('')}</tbody></table></div>`}
-async function adminReports(){setTitle('Relatórios','Financeiro e desempenho');const d=await api('/api/admin/reports');content.innerHTML=`<div class="grid g2"><div class="card"><h2>Financeiro</h2>${d.finance.map(x=>`<div class="lesson">${x.student} - ${money(x.amount)} - ${x.status}</div>`).join('')}</div><div class="card"><h2>Desempenho</h2>${d.performance.map(x=>`<div class="lesson">${x.student} - ${x.lesson} - ${x.score}%</div>`).join('')}</div></div>`}
-async function adminSettings(){setTitle('Configurações','Pix manual e marca');const s=await api('/api/admin/settings');content.innerHTML=`<div class="card"><h2>Pix manual</h2><input id="brandName" value="${s.brand_name||''}" placeholder="Nome da marca"><input id="pixKey" value="${s.pix_key||''}" placeholder="Chave Pix"><input id="certScore" type="number" value="${s.min_certificate_score||70}" placeholder="Nota mínima certificado"><label>QR Code Pix gerado por você</label><input id="pixQR" type="file" accept="image/*"><button class="btn" style="margin-top:12px" onclick="saveSettings()">Salvar configurações</button>${s.pix_qr_file?`<p><a href="${s.pix_qr_file}" target="_blank">Ver QR atual</a></p>`:''}</div>`}
-async function saveSettings(){const f=new FormData();f.append('brand_name',brandName.value);f.append('pix_key',pixKey.value);f.append('min_certificate_score',certScore.value);if(pixQR.files[0])f.append('pix_qr',pixQR.files[0]);await api('/api/admin/settings',{method:'PUT',body:f});alert('Salvo');adminSettings()}async function approve(id){await api('/api/admin/payments/'+id+'/approve',{method:'POST'});adminPayments()}async function rejectPay(id){await api('/api/admin/payments/'+id+'/reject',{method:'POST'});adminPayments()}
-async function renderStudent(){if(page==='dashboard')return stDash();if(page==='course')return stCourse();if(page==='payment')return stPayment();if(page==='certificate')return stCert()}async function stDash(){setTitle('Início','Resumo');const d=await api('/api/student/dashboard');content.innerHTML=`<div class="grid g2">${d.enrollments.map(e=>`<div class="card"><h2>${e.title}</h2><p>${e.description}</p><p>Acesso: <span class="badge ${e.access_status==='active'?'ok':'warn'}">${e.access_status}</span></p><div class="progress"><span style="width:${e.progress}%"></span></div></div>`).join('')}</div>`}
-async function stCourse(){setTitle('Meu curso','Aulas liberadas');const d=await api('/api/student/dashboard');const e=d.enrollments[0];if(!e){content.innerHTML='<div class="card">Nenhum curso.</div>';return}const c=await api('/api/student/course/'+e.course_id);if(c.enrollment.access_status!=='active'){content.innerHTML='<div class="card"><h2>Acesso bloqueado</h2><p>Aguarde o administrador aprovar seu pagamento.</p></div>';return}content.innerHTML=`<div class="card"><h2>${c.course.title}</h2>${c.lessons.map(l=>`<div class="lesson"><h3>${l.title}</h3><p>${l.content||l.summary}</p>${l.video_url?`<div class="video"><iframe src="${l.video_url}"></iframe></div>`:''}${l.video_file?`<div class="video"><video src="${l.video_file}" controls></video></div>`:''}${l.pdf_file?`<p><a href="${l.pdf_file}" target="_blank">Baixar PDF</a></p>`:''}<div class="actions"><button class="btn2" onclick="completeLesson(${l.id})">Marcar concluída</button><button class="btn" onclick="startQuiz(${l.id})">Quiz</button></div></div>`).join('')}</div>`}
-async function stPayment(){setTitle('Pagamento','Pix e comprovante');const d=await api('/api/student/dashboard');content.innerHTML=`<div class="grid g2">${d.payments.map(p=>`<div class="card"><h2>Pagamento</h2><p>Valor: ${money(p.amount)}</p><p>Status: ${p.status}</p><p>Chave Pix: <b>${p.pix_key||publicData.settings.pix_key}</b></p>${p.pix_qr_file?`<img src="${p.pix_qr_file}" style="max-width:220px;background:white;padding:10px;border-radius:12px">`:''}<input type="file" id="receipt${p.id}" accept="image/*,.pdf"><button class="btn" onclick="sendReceipt(${p.id})">Enviar comprovante</button></div>`).join('')}</div>`}
-async function sendReceipt(id){const f=new FormData();f.append('receipt',document.getElementById('receipt'+id).files[0]);await api('/api/student/payment/'+id+'/receipt',{method:'POST',body:f});alert('Comprovante enviado');stPayment()}async function completeLesson(id){await api('/api/student/lesson/'+id+'/complete',{method:'POST'});alert('Aula concluída')}async function startQuiz(id){try{const q=await api('/api/student/lesson/'+id+'/quiz');modal.style.display='grid';modalBody.innerHTML=`<h2>${q.lesson.title}</h2>${q.questions.map(x=>`<div class="lesson"><b>${x.question}</b><label><input type="radio" name="q${x.id}" value="0"> ${x.option_a}</label><br><label><input type="radio" name="q${x.id}" value="1"> ${x.option_b}</label><br><label><input type="radio" name="q${x.id}" value="2"> ${x.option_c}</label><br><label><input type="radio" name="q${x.id}" value="3"> ${x.option_d}</label></div>`).join('')}<button class="btn" onclick="finishQuiz(${id})">Finalizar</button><button class="btn2" onclick="modal.style.display='none'">Fechar</button>`}catch(e){alert(e.message)}}async function finishQuiz(id){const inputs=modalBody.querySelectorAll('input[type=radio]:checked');const answers={};inputs.forEach(i=>answers[i.name.replace('q','')]=i.value);const r=await api('/api/student/lesson/'+id+'/quiz',{method:'POST',body:JSON.stringify({answers})});alert('Nota: '+r.score+'%');modal.style.display='none'}async function stCert(){setTitle('Certificado','Gerar certificado');const d=await api('/api/student/dashboard');const e=d.enrollments[0];content.innerHTML=`<div class="card"><h2>Certificado</h2><p>Gere seu certificado quando atingir os requisitos.</p><button class="btn" onclick="genCert(${e?.course_id})">Gerar certificado</button><div id="certBox"></div></div>`}async function genCert(id){try{const r=await api('/api/student/course/'+id+'/certificate',{method:'POST'});certBox.innerHTML=`<div class="lesson"><h3>Código: ${r.certificate.code}</h3><p>Validação pública: /api/certificate/${r.certificate.code}</p></div>`}catch(e){alert(e.message)}}
-async function courseModal(){modal.style.display='grid';modalBody.innerHTML='<h2>Curso</h2><input id="cTitle" placeholder="Título"><textarea id="cDesc" placeholder="Descrição"></textarea><input id="cPrice" type="number" placeholder="Preço"><input id="cWork" placeholder="Carga horária"><input id="cTeacher" placeholder="Professor"><button class="btn" onclick="saveCourse()">Salvar</button><button class="btn2" onclick="modal.style.display=`none`">Fechar</button>'}async function saveCourse(){const f=new FormData();f.append('title',cTitle.value);f.append('description',cDesc.value);f.append('price',cPrice.value);f.append('workload',cWork.value);f.append('teacher',cTeacher.value);await api('/api/admin/courses',{method:'POST',body:f});modal.style.display='none';adminCourses()}async function deleteCourse(id){if(confirm('Excluir curso?')){await api('/api/admin/courses/'+id,{method:'DELETE'});adminCourses()}}async function lessonModal(courseId){modal.style.display='grid';modalBody.innerHTML='<h2>Aula</h2><input id="lTitle" placeholder="Título"><input id="lModule" placeholder="Módulo"><textarea id="lSummary" placeholder="Resumo"></textarea><textarea id="lContent" placeholder="Conteúdo"></textarea><input id="lVideoUrl" placeholder="Link vídeo"><label>Vídeo</label><input id="lVideo" type="file" accept="video/*"><label>PDF</label><input id="lPdf" type="file" accept=".pdf"><input id="lPos" type="number" placeholder="Ordem"><button class="btn" onclick="saveLesson('+courseId+')">Salvar</button><button class="btn2" onclick="modal.style.display=`none`">Fechar</button>'}async function saveLesson(courseId){const f=new FormData();f.append('course_id',courseId);f.append('title',lTitle.value);f.append('module',lModule.value);f.append('summary',lSummary.value);f.append('content',lContent.value);f.append('video_url',lVideoUrl.value);f.append('position',lPos.value||0);if(lVideo.files[0])f.append('video',lVideo.files[0]);if(lPdf.files[0])f.append('pdf',lPdf.files[0]);await api('/api/admin/lessons',{method:'POST',body:f});modal.style.display='none';adminLessons()}async function deleteLesson(id){if(confirm('Excluir aula?')){await api('/api/admin/lessons/'+id,{method:'DELETE'});adminLessons()}}async function questions(lessonId){const q=await api('/api/admin/lessons/'+lessonId+'/questions');modal.style.display='grid';modalBody.innerHTML=`<h2>Quiz</h2><input id="qq" placeholder="Pergunta"><input id="qa" placeholder="A"><input id="qb" placeholder="B"><input id="qc" placeholder="C"><input id="qd" placeholder="D"><select id="correct"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select><button class="btn" onclick="addQuestion(${lessonId})">Adicionar</button>${q.questions.map(x=>`<div class="lesson">${x.question}<button class="bad" onclick="deleteQuestion(${x.id},${lessonId})">Excluir</button></div>`).join('')}`}async function addQuestion(lessonId){await api('/api/admin/questions',{method:'POST',body:JSON.stringify({lesson_id:lessonId,question:qq.value,option_a:qa.value,option_b:qb.value,option_c:qc.value,option_d:qd.value,correct_option:correct.value})});questions(lessonId)}async function deleteQuestion(id,lessonId){await api('/api/admin/questions/'+id,{method:'DELETE'});questions(lessonId)}modal.onclick=e=>{if(e.target===modal)modal.style.display='none'};
+const App=(()=>{
+  let token=localStorage.getItem('token')||'';
+  let me=null;
+  let page='dashboard';
+  let publicData={settings:{},courses:[]};
 
+  const adminMenu=[
+    ['dashboard','Dashboard'],['courses','Cursos'],['lessons','Aulas'],['payments','Pagamentos'],
+    ['students','Alunos'],['reports','Relatórios'],['settings','Configurações']
+  ];
+  const studentMenu=[
+    ['dashboard','Início'],['course','Meu curso'],['payment','Pagamento'],['certificate','Certificado']
+  ];
 
-window.show=show;window.login=login;window.register=register;window.logout=logout;window.go=go;window.toggleMenu=toggleMenu;window.courseModal=courseModal;window.saveCourse=saveCourse;window.deleteCourse=deleteCourse;window.lessonModal=lessonModal;window.saveLesson=saveLesson;window.deleteLesson=deleteLesson;window.questions=questions;window.addQuestion=addQuestion;window.deleteQuestion=deleteQuestion;window.approve=approve;window.rejectPay=rejectPay;window.sendReceipt=sendReceipt;window.completeLesson=completeLesson;window.startQuiz=startQuiz;window.finishQuiz=finishQuiz;window.genCert=genCert;window.saveSettings=saveSettings;
-loadPublic();if(token)api('/api/me').then(j=>{me=j.user;openApp()}).catch(()=>{localStorage.removeItem('token');token='';show('landing')});
+  const $=id=>document.getElementById(id);
+  const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+
+  function loading(on){$('loading').style.display=on?'flex':'none'}
+  function toast(msg){$('toast').textContent=msg;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2600)}
+  function setScreen(name){
+    ['landing','loginScreen'].forEach(id=>$(id).classList.remove('active'));
+    $('app').style.display='none';
+    if(name==='app'){$('app').style.display='block'}
+    else $(name).classList.add('active');
+    window.scrollTo(0,0);
+  }
+  async function api(url,opt={}){
+    opt.headers=opt.headers||{};
+    if(!(opt.body instanceof FormData)) opt.headers['Content-Type']='application/json';
+    if(token) opt.headers.Authorization='Bearer '+token;
+    const res=await fetch(url,opt);
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error||'Erro no servidor');
+    return data;
+  }
+  async function init(){
+    try{
+      publicData=await api('/api/public');
+      $('brandName').textContent=publicData.settings.brand_name||'CursoPro LMS';
+      $('buyCourse').innerHTML=publicData.courses.map(c=>`<option value="${c.id}">${esc(c.title)}</option>`).join('');
+      updatePrice();
+      $('buyCourse').onchange=updatePrice;
+      if(token){
+        try{me=(await api('/api/me')).user;openApp()}catch{localStorage.removeItem('token');token=''}
+      }
+    }catch(e){
+      $('buyCourse').innerHTML='<option>Erro ao carregar cursos</option>';
+      console.error(e);
+    }
+  }
+  function updatePrice(){
+    const c=publicData.courses.find(x=>String(x.id)===$('buyCourse').value);
+    $('coursePrice').textContent=c?money(c.price):'R$ 0,00';
+  }
+  function showLogin(){setScreen('loginScreen')}
+  function showLanding(){setScreen('landing')}
+  async function register(){
+    try{
+      const body={name:$('regName').value,email:$('regEmail').value,phone:$('regPhone').value,password:$('regPass').value,course_id:$('buyCourse').value};
+      if(!body.name||!body.email||!body.password) return alert('Preencha nome, e-mail e senha.');
+      loading(true);
+      const data=await api('/api/auth/register',{method:'POST',body:JSON.stringify(body)});
+      token=data.token;localStorage.setItem('token',token);me=data.user;
+      openApp();
+    }catch(e){alert(e.message)}finally{loading(false)}
+  }
+  async function login(){
+    try{
+      loading(true);
+      const data=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:$('loginEmail').value,password:$('loginPass').value})});
+      token=data.token;localStorage.setItem('token',token);me=data.user;
+      openApp();
+    }catch(e){alert(e.message)}finally{loading(false)}
+  }
+  function logout(){token='';me=null;localStorage.removeItem('token');page='dashboard';setScreen('landing')}
+  function openApp(){setScreen('app');page='dashboard';renderMenu();render()}
+  function toggleMenu(){$('sidebar').classList.toggle('open')}
+  function go(p){page=p;$('sidebar').classList.remove('open');renderMenu();render()}
+  function renderMenu(){
+    const items=me.role==='admin'?adminMenu:studentMenu;
+    $('roleText').textContent=me.role==='admin'?'Administrador':'Aluno';
+    $('menu').innerHTML=items.map(i=>`<button class="${page===i[0]?'active':''}" onclick="App.go('${i[0]}')">${i[1]}</button>`).join('');
+  }
+  function title(t,s=''){$('pageTitle').textContent=t;$('pageSub').textContent=s;$('topActions').innerHTML=''}
+  async function render(){me.role==='admin'?await renderAdmin():await renderStudent()}
+
+  async function renderAdmin(){
+    if(page==='dashboard') return adminDashboard();
+    if(page==='courses') return adminCourses();
+    if(page==='lessons') return adminLessons();
+    if(page==='payments') return adminPayments();
+    if(page==='students') return adminStudents();
+    if(page==='reports') return adminReports();
+    if(page==='settings') return adminSettings();
+  }
+  async function adminDashboard(){
+    title('Dashboard','Resumo do sistema');
+    const d=await api('/api/admin/dashboard');
+    $('content').innerHTML=`<div class="grid g3">
+      <div class="card"><p>Alunos</p><div class="stat">${d.users}</div></div>
+      <div class="card"><p>Pagamentos pendentes</p><div class="stat">${d.pending}</div></div>
+      <div class="card"><p>Receita aprovada</p><div class="stat">${money(d.paid)}</div></div>
+    </div>
+    <div class="card" style="margin-top:18px"><h2>Atividades recentes</h2>
+      ${(d.logs||[]).map(l=>`<div class="lesson"><strong>${esc(l.action)}</strong><p>${esc(l.created_at)}</p></div>`).join('')||'<div class="empty">Sem atividades.</div>'}
+    </div>`;
+  }
+  async function adminCourses(){
+    title('Cursos','Gerencie seus cursos');
+    $('topActions').innerHTML='<button class="btn" onclick="App.courseModal()">Novo curso</button>';
+    const d=await api('/api/admin/courses');
+    $('content').innerHTML=`<div class="grid g2">${d.courses.map(c=>`<div class="card">
+      <h2>${esc(c.title)}</h2><p>${esc(c.description)}</p><p><strong>${money(c.price)}</strong> • ${esc(c.workload||'')}</p>
+      <div class="actions"><button class="btn-danger btn-small" onclick="App.deleteCourse(${c.id})">Excluir</button></div>
+    </div>`).join('')||'<div class="empty">Nenhum curso cadastrado.</div>'}</div>`;
+  }
+  async function adminLessons(){
+    title('Aulas','Conteúdo, PDF, vídeo e quiz');
+    const c=await api('/api/admin/courses');
+    if(!c.courses.length){$('content').innerHTML='<div class="empty">Crie um curso primeiro.</div>';return}
+    const selected=localStorage.courseId||c.courses[0].id;
+    localStorage.courseId=selected;
+    const l=await api('/api/admin/courses/'+selected+'/lessons');
+    $('content').innerHTML=`<div class="card">
+      <div class="actions" style="justify-content:space-between"><h2>Aulas</h2><button class="btn" onclick="App.lessonModal(${selected})">Nova aula</button></div>
+      <select onchange="localStorage.courseId=this.value;App.go('lessons')">${c.courses.map(x=>`<option value="${x.id}" ${String(x.id)===String(selected)?'selected':''}>${esc(x.title)}</option>`).join('')}</select>
+      <div style="margin-top:12px">${l.lessons.map(a=>`<div class="lesson">
+        <h3>${esc(a.title)}</h3><p>${esc(a.summary||'')}</p>
+        <span class="badge ${a.active?'badge-ok':'badge-bad'}">${a.active?'Ativa':'Bloqueada'}</span>
+        <div class="actions" style="margin-top:10px"><button class="btn btn-small" onclick="App.questions(${a.id})">Quiz</button><button class="btn-danger btn-small" onclick="App.deleteLesson(${a.id})">Excluir</button></div>
+      </div>`).join('')||'<div class="empty">Nenhuma aula cadastrada.</div>'}</div>
+    </div>`;
+  }
+  async function adminPayments(){
+    title('Pagamentos','Aprovação manual de comprovantes');
+    const d=await api('/api/admin/payments');
+    $('content').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Aluno</th><th>Curso</th><th>Valor</th><th>Status</th><th>Comprovante</th><th>Ações</th></tr></thead><tbody>
+    ${d.payments.map(p=>`<tr><td><strong>${esc(p.student_name)}</strong><br>${esc(p.email)}</td><td>${esc(p.course_title)}</td><td>${money(p.amount)}</td><td>${status(p.status)}</td><td>${p.receipt_file?`<a href="${p.receipt_file}" target="_blank">Abrir</a>`:'-'}</td><td class="actions"><button class="btn-success btn-small" onclick="App.approve(${p.id})">Aprovar</button><button class="btn-danger btn-small" onclick="App.rejectPay(${p.id})">Recusar</button></td></tr>`).join('')}
+    </tbody></table></div>`;
+  }
+  async function adminStudents(){
+    title('Alunos','Usuários cadastrados');
+    const d=await api('/api/admin/students');
+    $('content').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Matrículas</th></tr></thead><tbody>
+    ${d.students.map(s=>`<tr><td><strong>${esc(s.name)}</strong></td><td>${esc(s.email)}</td><td>${esc(s.phone||'-')}</td><td>${s.enrollments}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  }
+  async function adminReports(){
+    title('Relatórios','Financeiro e desempenho');
+    const d=await api('/api/admin/reports');
+    $('content').innerHTML=`<div class="grid g2">
+      <div class="card"><h2>Financeiro</h2>${d.finance.map(x=>`<div class="lesson">${esc(x.student)} — ${money(x.amount)} — ${esc(x.status)}</div>`).join('')||'<div class="empty">Sem dados.</div>'}</div>
+      <div class="card"><h2>Desempenho</h2>${d.performance.map(x=>`<div class="lesson">${esc(x.student)} — ${esc(x.lesson)} — ${x.score}%</div>`).join('')||'<div class="empty">Sem dados.</div>'}</div>
+    </div>`;
+  }
+  async function adminSettings(){
+    title('Configurações','Marca, Pix e certificado');
+    const s=await api('/api/admin/settings');
+    $('content').innerHTML=`<div class="card"><h2>Configurações principais</h2>
+      <label>Nome da marca</label><input id="brandInput" value="${esc(s.brand_name||'')}">
+      <label>Chave Pix</label><input id="pixInput" value="${esc(s.pix_key||'')}">
+      <label>Nota mínima para certificado</label><input id="scoreInput" type="number" value="${esc(s.min_certificate_score||70)}">
+      <label>QR Code Pix</label><input id="pixFile" type="file" accept="image/*">
+      ${s.pix_qr_file?`<p style="margin-top:10px"><a href="${s.pix_qr_file}" target="_blank">Ver QR atual</a></p>`:''}
+      <button class="btn" style="margin-top:14px" onclick="App.saveSettings()">Salvar</button>
+    </div>`;
+  }
+
+  function status(s){return s==='paid'?'<span class="badge badge-ok">Pago</span>':s==='rejected'?'<span class="badge badge-bad">Recusado</span>':'<span class="badge badge-warn">Pendente</span>'}
+  async function approve(id){await api('/api/admin/payments/'+id+'/approve',{method:'POST'});toast('Pagamento aprovado');adminPayments()}
+  async function rejectPay(id){await api('/api/admin/payments/'+id+'/reject',{method:'POST'});toast('Pagamento recusado');adminPayments()}
+  async function saveSettings(){
+    const f=new FormData();f.append('brand_name',$('brandInput').value);f.append('pix_key',$('pixInput').value);f.append('min_certificate_score',$('scoreInput').value);
+    if($('pixFile').files[0])f.append('pix_qr',$('pixFile').files[0]);
+    await api('/api/admin/settings',{method:'PUT',body:f});toast('Configurações salvas');adminSettings();
+  }
+
+  async function renderStudent(){
+    if(page==='dashboard')return studentDashboard();
+    if(page==='course')return studentCourse();
+    if(page==='payment')return studentPayment();
+    if(page==='certificate')return studentCertificate();
+  }
+  async function studentDashboard(){
+    title('Início','Resumo do seu acesso');
+    const d=await api('/api/student/dashboard');
+    $('content').innerHTML=`<div class="grid g2">${d.enrollments.map(e=>`<div class="card">
+      <h2>${esc(e.title)}</h2><p>${esc(e.description)}</p>
+      ${e.access_status==='active'?'<span class="badge badge-ok">Acesso liberado</span>':'<span class="badge badge-warn">Aguardando aprovação</span>'}
+      <div class="progress"><span style="width:${e.progress||0}%"></span></div><p class="small">${e.progress||0}% concluído</p>
+    </div>`).join('')||'<div class="empty">Nenhum curso encontrado.</div>'}</div>`;
+  }
+  async function studentCourse(){
+    title('Meu curso','Aulas disponíveis');
+    const d=await api('/api/student/dashboard');const e=d.enrollments[0];
+    if(!e){$('content').innerHTML='<div class="empty">Nenhum curso encontrado.</div>';return}
+    const c=await api('/api/student/course/'+e.course_id);
+    if(c.enrollment.access_status!=='active'){$('content').innerHTML='<div class="notice"><strong>Acesso bloqueado.</strong><p>Aguarde o administrador aprovar seu pagamento.</p></div>';return}
+    $('content').innerHTML=`<div class="card"><h2>${esc(c.course.title)}</h2>${c.lessons.map(l=>`<div class="lesson">
+      <h3>${esc(l.title)}</h3><p>${esc(l.content||l.summary||'')}</p>
+      ${l.video_url?`<div class="video-box"><iframe src="${esc(l.video_url)}" allowfullscreen></iframe></div>`:''}
+      ${l.video_file?`<div class="video-box"><video src="${esc(l.video_file)}" controls></video></div>`:''}
+      ${l.pdf_file?`<p style="margin-top:10px"><a href="${esc(l.pdf_file)}" target="_blank">Baixar PDF</a></p>`:''}
+      <div class="actions" style="margin-top:12px"><button class="btn-light btn-small" onclick="App.completeLesson(${l.id})">Marcar concluída</button><button class="btn btn-small" onclick="App.startQuiz(${l.id})">Fazer quiz</button></div>
+    </div>`).join('')}</div>`;
+  }
+  async function studentPayment(){
+    title('Pagamento','Pix e comprovante');
+    const d=await api('/api/student/dashboard');
+    $('content').innerHTML=`<div class="grid g2">${d.payments.map(p=>`<div class="card">
+      <h2>Pagamento</h2><p>Valor: <strong>${money(p.amount)}</strong></p><p>Status: ${status(p.status)}</p>
+      <p>Chave Pix: <strong>${esc(p.pix_key||publicData.settings.pix_key||'')}</strong></p>
+      ${p.pix_qr_file?`<img src="${esc(p.pix_qr_file)}" style="max-width:220px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;margin-top:10px">`:''}
+      <input type="file" id="receipt${p.id}" accept="image/*,.pdf"><button class="btn" style="margin-top:10px" onclick="App.sendReceipt(${p.id})">Enviar comprovante</button>
+    </div>`).join('')}</div>`;
+  }
+  async function studentCertificate(){
+    title('Certificado','Gerar certificado');
+    const d=await api('/api/student/dashboard');const e=d.enrollments[0];
+    $('content').innerHTML=`<div class="card"><h2>Certificado</h2><p>Gere seu certificado quando atingir os requisitos do curso.</p><button class="btn" style="margin-top:12px" onclick="App.generateCertificate(${e?.course_id})">Gerar certificado</button><div id="certBox"></div></div>`;
+  }
+  async function sendReceipt(id){const file=$('receipt'+id).files[0];if(!file)return alert('Selecione o comprovante.');const f=new FormData();f.append('receipt',file);await api('/api/student/payment/'+id+'/receipt',{method:'POST',body:f});toast('Comprovante enviado');studentPayment()}
+  async function completeLesson(id){await api('/api/student/lesson/'+id+'/complete',{method:'POST'});toast('Aula concluída')}
+  async function startQuiz(id){
+    try{
+      const q=await api('/api/student/lesson/'+id+'/quiz');
+      $('modalBg').style.display='flex';
+      $('modalBody').innerHTML=`<h2>${esc(q.lesson.title)}</h2>${q.questions.map(x=>`<div class="lesson"><strong>${esc(x.question)}</strong>
+        <label class="quiz-option"><input type="radio" name="q${x.id}" value="0"> ${esc(x.option_a)}</label>
+        <label class="quiz-option"><input type="radio" name="q${x.id}" value="1"> ${esc(x.option_b)}</label>
+        <label class="quiz-option"><input type="radio" name="q${x.id}" value="2"> ${esc(x.option_c||'')}</label>
+        <label class="quiz-option"><input type="radio" name="q${x.id}" value="3"> ${esc(x.option_d||'')}</label>
+      </div>`).join('')}<div class="actions" style="margin-top:14px"><button class="btn" onclick="App.finishQuiz(${id})">Finalizar</button><button class="btn-light" onclick="App.closeModalNow()">Fechar</button></div>`;
+    }catch(e){alert(e.message)}
+  }
+  async function finishQuiz(id){const answers={};$('modalBody').querySelectorAll('input[type=radio]:checked').forEach(i=>answers[i.name.replace('q','')]=i.value);const r=await api('/api/student/lesson/'+id+'/quiz',{method:'POST',body:JSON.stringify({answers})});closeModalNow();alert('Sua nota: '+r.score+'%')}
+  async function generateCertificate(id){try{const r=await api('/api/student/course/'+id+'/certificate',{method:'POST'});$('certBox').innerHTML=`<div class="lesson"><h3>Código: ${esc(r.certificate.code)}</h3><p>Use esse código para validar o certificado.</p></div>`}catch(e){alert(e.message)}}
+
+  function courseModal(){openModal(`<h2>Novo curso</h2><input id="cTitle" placeholder="Título"><textarea id="cDesc" placeholder="Descrição"></textarea><input id="cPrice" type="number" placeholder="Preço"><input id="cWork" placeholder="Carga horária"><input id="cTeacher" placeholder="Professor"><div class="actions" style="margin-top:14px"><button class="btn" onclick="App.saveCourse()">Salvar</button><button class="btn-light" onclick="App.closeModalNow()">Cancelar</button></div>`)}
+  async function saveCourse(){const f=new FormData();f.append('title',$('cTitle').value);f.append('description',$('cDesc').value);f.append('price',$('cPrice').value);f.append('workload',$('cWork').value);f.append('teacher',$('cTeacher').value);await api('/api/admin/courses',{method:'POST',body:f});closeModalNow();toast('Curso criado');adminCourses()}
+  async function deleteCourse(id){if(confirm('Excluir curso?')){await api('/api/admin/courses/'+id,{method:'DELETE'});adminCourses()}}
+  function lessonModal(courseId){openModal(`<h2>Nova aula</h2><input id="lTitle" placeholder="Título"><input id="lModule" placeholder="Módulo"><textarea id="lSummary" placeholder="Resumo"></textarea><textarea id="lContent" placeholder="Conteúdo"></textarea><input id="lVideoUrl" placeholder="Link de vídeo"><label>Vídeo</label><input id="lVideo" type="file" accept="video/*"><label>PDF</label><input id="lPdf" type="file" accept=".pdf"><input id="lPos" type="number" placeholder="Ordem"><div class="actions" style="margin-top:14px"><button class="btn" onclick="App.saveLesson(${courseId})">Salvar</button><button class="btn-light" onclick="App.closeModalNow()">Cancelar</button></div>`)}
+  async function saveLesson(courseId){const f=new FormData();f.append('course_id',courseId);f.append('title',$('lTitle').value);f.append('module',$('lModule').value);f.append('summary',$('lSummary').value);f.append('content',$('lContent').value);f.append('video_url',$('lVideoUrl').value);f.append('position',$('lPos').value||0);if($('lVideo').files[0])f.append('video',$('lVideo').files[0]);if($('lPdf').files[0])f.append('pdf',$('lPdf').files[0]);await api('/api/admin/lessons',{method:'POST',body:f});closeModalNow();toast('Aula criada');adminLessons()}
+  async function deleteLesson(id){if(confirm('Excluir aula?')){await api('/api/admin/lessons/'+id,{method:'DELETE'});adminLessons()}}
+  async function questions(lessonId){const q=await api('/api/admin/lessons/'+lessonId+'/questions');openModal(`<h2>Quiz</h2><input id="qq" placeholder="Pergunta"><input id="qa" placeholder="Alternativa A"><input id="qb" placeholder="Alternativa B"><input id="qc" placeholder="Alternativa C"><input id="qd" placeholder="Alternativa D"><select id="correct"><option value="0">A correta</option><option value="1">B correta</option><option value="2">C correta</option><option value="3">D correta</option></select><button class="btn" style="margin-top:10px" onclick="App.addQuestion(${lessonId})">Adicionar</button>${q.questions.map(x=>`<div class="lesson">${esc(x.question)}<div class="actions"><button class="btn-danger btn-small" onclick="App.deleteQuestion(${x.id},${lessonId})">Excluir</button></div></div>`).join('')}`)}
+  async function addQuestion(lessonId){await api('/api/admin/questions',{method:'POST',body:JSON.stringify({lesson_id:lessonId,question:$('qq').value,option_a:$('qa').value,option_b:$('qb').value,option_c:$('qc').value,option_d:$('qd').value,correct_option:$('correct').value})});questions(lessonId)}
+  async function deleteQuestion(id,lessonId){await api('/api/admin/questions/'+id,{method:'DELETE'});questions(lessonId)}
+  function openModal(html){$('modalBg').style.display='flex';$('modalBody').innerHTML=html}
+  function closeModal(e){if(e.target===$('modalBg'))closeModalNow()}
+  function closeModalNow(){$('modalBg').style.display='none';$('modalBody').innerHTML=''}
+
+  return {init,showLogin,showLanding,register,login,logout,toggleMenu,go,approve,rejectPay,saveSettings,sendReceipt,completeLesson,startQuiz,finishQuiz,generateCertificate,courseModal,saveCourse,deleteCourse,lessonModal,saveLesson,deleteLesson,questions,addQuestion,deleteQuestion,closeModal,closeModalNow};
+})();
+document.addEventListener('DOMContentLoaded',App.init);
 </script>
-</body></html>
+</body>
+</html>

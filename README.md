@@ -194,3 +194,22 @@ senha admin real
 - Supabase/Neon ficam responsáveis pelo banco.
 - Cloudinary guarda os arquivos fora do Render, melhor para vídeos e PDFs.
 - Para muitos alunos, use plano pago futuramente.
+
+
+## Versão definitiva visual limpa
+
+Esta versão refez o frontend do zero:
+- login corrigido
+- telas não somem
+- interface limpa para PC e mobile
+- admin organizado
+- aluno organizado
+- Pix, comprovante, aulas, PDF, vídeo, quiz e certificado mantidos
+
+Para publicar:
+```bash
+git add .
+git commit -m "frontend limpo definitivo"
+git push
+```
+Depois, no Render, clique em Deploy Latest Commit.
