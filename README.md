@@ -231,3 +231,22 @@ git commit -m "player tema dashboard certificado"
 git push
 ```
 Depois faça Deploy Latest Commit no Render.
+
+
+## Melhorias adicionadas agora
+
+- Perfil do aluno com edição de nome, telefone e senha
+- Botão de excluir aluno no painel admin
+- Edição de cursos
+- Edição de aulas
+- Página de vendas com mais seções e FAQ
+- Certificado mantido com layout profissional
+- Backend atualizado com rotas PUT/DELETE necessárias
+
+Atualização:
+```bash
+git add .
+git commit -m "perfil editar cursos aulas excluir alunos"
+git push
+```
+Depois faça Deploy Latest Commit no Render.

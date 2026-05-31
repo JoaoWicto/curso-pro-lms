@@ -145,6 +145,17 @@ app.get('/api/me', auth, async (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
+
+app.put('/api/me', auth, async (req, res) => {
+  const { name, phone, password } = req.body;
+  const user = await one('SELECT * FROM users WHERE id=$1', [req.user.id]);
+  if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+  const hash = password ? bcrypt.hashSync(password, 10) : user.password_hash;
+  await query('UPDATE users SET name=$1, phone=$2, password_hash=$3 WHERE id=$4', [name || user.name, phone || '', hash, req.user.id]);
+  const updated = await one('SELECT * FROM users WHERE id=$1', [req.user.id]);
+  res.json({ user: publicUser(updated) });
+});
+
 app.get('/api/student/dashboard', auth, async (req, res) => {
   const enrollments = await many(`
     SELECT e.*, c.title, c.description, c.workload, c.teacher, c.price
@@ -277,6 +288,20 @@ app.post('/api/admin/courses', auth, admin, upload.single('cover'), async (req, 
   await log(req.user.id, `Curso criado: ${title}`);
   res.json({ id: result.rows[0].id });
 });
+
+app.put('/api/admin/courses/:id', auth, admin, upload.single('cover'), async (req, res) => {
+  const id = Number(req.params.id);
+  const old = await one('SELECT * FROM courses WHERE id=$1', [id]);
+  if (!old) return res.status(404).json({ error: 'Curso não encontrado' });
+  const { title, description, price, workload, teacher, active } = req.body;
+  const cover = req.file ? await uploadFile(req.file, 'curso-pro/covers') : old.cover_url;
+  await query('UPDATE courses SET title=$1,description=$2,price=$3,workload=$4,teacher=$5,cover_url=$6,active=$7 WHERE id=$8', [
+    title || old.title, description || '', Number(price || 0), workload || '', teacher || '', cover, active === '0' ? false : true, id
+  ]);
+  await log(req.user.id, `Curso editado: ${title || old.title}`);
+  res.json({ ok: true });
+});
+
 app.delete('/api/admin/courses/:id', auth, admin, async (req, res) => {
   await query('DELETE FROM courses WHERE id=$1', [Number(req.params.id)]);
   res.json({ ok: true });
@@ -293,6 +318,21 @@ app.post('/api/admin/lessons', auth, admin, upload.fields([{ name: 'video', maxC
   await log(req.user.id, `Aula criada: ${title}`);
   res.json({ id: result.rows[0].id });
 });
+
+app.put('/api/admin/lessons/:id', auth, admin, upload.fields([{ name: 'video', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), async (req, res) => {
+  const id = Number(req.params.id);
+  const old = await one('SELECT * FROM lessons WHERE id=$1', [id]);
+  if (!old) return res.status(404).json({ error: 'Aula não encontrada' });
+  const { title, module, summary, content, video_url, active, position } = req.body;
+  const video = req.files?.video?.[0] ? await uploadFile(req.files.video[0], 'curso-pro/videos') : old.video_file;
+  const pdf = req.files?.pdf?.[0] ? await uploadFile(req.files.pdf[0], 'curso-pro/pdfs') : old.pdf_file;
+  await query('UPDATE lessons SET title=$1,module=$2,summary=$3,content=$4,video_url=$5,video_file=$6,pdf_file=$7,active=$8,position=$9 WHERE id=$10', [
+    title || old.title, module || '', summary || '', content || '', video_url || '', video, pdf, active === '0' ? false : true, Number(position || 0), id
+  ]);
+  await log(req.user.id, `Aula editada: ${title || old.title}`);
+  res.json({ ok: true });
+});
+
 app.delete('/api/admin/lessons/:id', auth, admin, async (req, res) => {
   await query('DELETE FROM lessons WHERE id=$1', [Number(req.params.id)]);
   res.json({ ok: true });
@@ -307,6 +347,16 @@ app.get('/api/admin/students', auth, admin, async (req, res) => {
   `);
   res.json({ students });
 });
+
+app.delete('/api/admin/students/:id', auth, admin, async (req, res) => {
+  const id = Number(req.params.id);
+  const user = await one('SELECT * FROM users WHERE id=$1 AND role=$2', [id, 'student']);
+  if (!user) return res.status(404).json({ error: 'Aluno não encontrado' });
+  await query('DELETE FROM users WHERE id=$1 AND role=$2', [id, 'student']);
+  await log(req.user.id, `Aluno excluído: ${user.name}`);
+  res.json({ ok: true });
+});
+
 
 app.get('/api/admin/payments', auth, admin, async (req, res) => {
   const payments = await many(`
