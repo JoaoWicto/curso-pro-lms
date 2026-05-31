@@ -50,6 +50,9 @@ async function init() {
       pdf_file TEXT DEFAULT '',
       active BOOLEAN NOT NULL DEFAULT TRUE,
       position INTEGER NOT NULL DEFAULT 0,
+      min_score INTEGER NOT NULL DEFAULT 70,
+      time_limit_minutes INTEGER NOT NULL DEFAULT 0,
+      show_results BOOLEAN NOT NULL DEFAULT TRUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
@@ -130,6 +133,9 @@ async function init() {
       active BOOLEAN NOT NULL DEFAULT TRUE,
       released BOOLEAN NOT NULL DEFAULT TRUE,
       position INTEGER NOT NULL DEFAULT 0,
+      min_score INTEGER NOT NULL DEFAULT 70,
+      time_limit_minutes INTEGER NOT NULL DEFAULT 0,
+      show_results BOOLEAN NOT NULL DEFAULT TRUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 

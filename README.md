@@ -273,3 +273,22 @@ git commit -m "sistema de provas atividades e tentativas"
 git push
 ```
 Depois faça Deploy Latest Commit no Render.
+
+
+## Avaliações avançadas
+
+Adicionado:
+- Nota mínima por avaliação
+- Aprovado/Reprovado
+- Prova com tempo e envio automático
+- Recuperação aparece para aluno reprovado
+- Relatório de notas no admin
+- Exportação CSV de notas
+
+Atualização:
+```bash
+git add .
+git commit -m "avaliacoes avancadas notas tempo relatorio"
+git push
+```
+Depois faça Deploy Latest Commit no Render.

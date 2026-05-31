@@ -69,6 +69,14 @@ async function ensureAssessmentTables() {
 }
 ensureAssessmentTables().catch(err => console.error('Erro ao criar tabelas de avaliações:', err));
 
+async function ensureAssessmentAdvancedColumns() {
+  await query('ALTER TABLE assessments ADD COLUMN IF NOT EXISTS min_score INTEGER NOT NULL DEFAULT 70');
+  await query('ALTER TABLE assessments ADD COLUMN IF NOT EXISTS time_limit_minutes INTEGER NOT NULL DEFAULT 0');
+  await query('ALTER TABLE assessments ADD COLUMN IF NOT EXISTS show_results BOOLEAN NOT NULL DEFAULT TRUE');
+}
+ensureAssessmentAdvancedColumns().catch(err => console.error('Erro ao ajustar avaliações:', err));
+
+
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -449,12 +457,12 @@ app.get('/api/admin/courses/:id/assessments', auth, admin, async (req, res) => {
 });
 
 app.post('/api/admin/assessments', auth, admin, async (req, res) => {
-  const { course_id, title, description, type, max_attempts, released, active, position } = req.body;
+  const { course_id, title, description, type, max_attempts, released, active, position, min_score, time_limit_minutes, show_results } = req.body;
   const normalizedType = type || 'activity';
   const attempts = normalizedType === 'activity' || normalizedType === 'quiz' ? 2 : 1;
   const result = await query(
-    'INSERT INTO assessments (course_id,title,description,type,max_attempts,released,active,position) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-    [course_id, title, description || '', normalizedType, Number(max_attempts || attempts), released === true || released === 'true', active === false || active === 'false' ? false : true, Number(position || 0)]
+    'INSERT INTO assessments (course_id,title,description,type,max_attempts,released,active,position,min_score,time_limit_minutes,show_results) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
+    [course_id, title, description || '', normalizedType, Number(max_attempts || attempts), released === true || released === 'true', active === false || active === 'false' ? false : true, Number(position || 0), Number(min_score || 70), Number(time_limit_minutes || 0), show_results === false || show_results === 'false' ? false : true]
   );
   await log(req.user.id, `Avaliação criada: ${title}`);
   res.json({ id: result.rows[0].id });
@@ -464,10 +472,10 @@ app.put('/api/admin/assessments/:id', auth, admin, async (req, res) => {
   const id = Number(req.params.id);
   const old = await one('SELECT * FROM assessments WHERE id=$1', [id]);
   if (!old) return res.status(404).json({ error: 'Avaliação não encontrada' });
-  const { title, description, type, max_attempts, released, active, position } = req.body;
+  const { title, description, type, max_attempts, released, active, position, min_score, time_limit_minutes, show_results } = req.body;
   await query(
-    'UPDATE assessments SET title=$1,description=$2,type=$3,max_attempts=$4,released=$5,active=$6,position=$7 WHERE id=$8',
-    [title || old.title, description || '', type || old.type, Number(max_attempts || old.max_attempts), released === true || released === 'true', active === false || active === 'false' ? false : true, Number(position || old.position || 0), id]
+    'UPDATE assessments SET title=$1,description=$2,type=$3,max_attempts=$4,released=$5,active=$6,position=$7,min_score=$8,time_limit_minutes=$9,show_results=$10 WHERE id=$11',
+    [title || old.title, description || '', type || old.type, Number(max_attempts || old.max_attempts), released === true || released === 'true', active === false || active === 'false' ? false : true, Number(position || old.position || 0), Number(min_score || old.min_score || 70), Number(time_limit_minutes || old.time_limit_minutes || 0), show_results === false || show_results === 'false' ? false : true, id]
   );
   await log(req.user.id, `Avaliação editada: ${title || old.title}`);
   res.json({ ok: true });
@@ -511,8 +519,14 @@ app.get('/api/student/course/:id/assessments', auth, async (req, res) => {
   const courseId = Number(req.params.id);
   const enrollment = await one('SELECT * FROM enrollments WHERE user_id=$1 AND course_id=$2 AND access_status=$3', [req.user.id, courseId, 'active']);
   if (!enrollment) return res.status(403).json({ error: 'Acesso bloqueado' });
-  const assessments = await many('SELECT * FROM assessments WHERE course_id=$1 AND active=TRUE ORDER BY position,id', [courseId]);
+  let assessments = await many('SELECT * FROM assessments WHERE course_id=$1 AND active=TRUE ORDER BY position,id', [courseId]);
   const attempts = await many('SELECT * FROM assessment_attempts WHERE user_id=$1 ORDER BY id DESC', [req.user.id]);
+  const examAssessments = assessments.filter(a => a.type === 'exam');
+  const failedExam = examAssessments.some(a => {
+    const best = attempts.filter(t => t.assessment_id === a.id).sort((x,y)=>y.score-x.score)[0];
+    return best && Number(best.score) < Number(a.min_score || 70);
+  });
+  assessments = assessments.filter(a => a.type !== 'recovery' || failedExam || a.released);
   res.json({ assessments, attempts });
 });
 
@@ -549,6 +563,19 @@ app.post('/api/student/assessments/:id/submit', auth, async (req, res) => {
     [id, req.user.id, score, correct, questions.length, JSON.stringify(answers)]
   );
   res.json({ score, correct, total: questions.length, attempts_used: count.total + 1, attempts_left: assessment.max_attempts - (count.total + 1) });
+});
+
+
+app.get('/api/admin/assessment-results', auth, admin, async (req, res) => {
+  const results = await many(`
+    SELECT aa.*, u.name student_name, u.email, a.title assessment_title, a.type, a.min_score, c.title course_title
+    FROM assessment_attempts aa
+    JOIN users u ON u.id=aa.user_id
+    JOIN assessments a ON a.id=aa.assessment_id
+    JOIN courses c ON c.id=a.course_id
+    ORDER BY aa.id DESC
+  `);
+  res.json({ results });
 });
 
 app.get('/api/admin/reports', auth, admin, async (req, res) => {
