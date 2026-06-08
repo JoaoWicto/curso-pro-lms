@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>CursoPro 5.0 - Tempo Real</title>
+  <meta name="description" content="CursoPro 5.0 - Tempo Real profissional para GitHub Pages + Google Sheets." />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="toast"></div>
+  <div id="syncIndicator" class="sync-indicator offline">Local</div>
+  <div id="appLoading" class="app-loading hidden">
+    <div class="loader-card">
+      <div class="loader-spinner"></div>
+      <strong>Carregando...</strong>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand" onclick="goHome()">
+      <div class="logo">CP</div>
+      <div>
+        <h1>CursoPro 5.0</h1>
+        <span>GitHub Pages + Google Sheets em tempo real</span>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="ghost-btn" id="themeBtn">Tema</button>
+      <button class="ghost-btn" onclick="openHelp()">Ajuda</button>
+      <button class="danger-btn hidden" id="logoutBtn">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="landingPage" class="page active">
+      <div class="hero">
+        <div class="hero-text">
+          <span class="badge">Grátis • Google Sheets • GitHub Pages</span>
+          <h2>Plataforma completa para cursos online</h2>
+          <p>
+            Crie cursos, módulos, videoaulas, atividades, quiz, provas, recuperação,
+            notas e certificados usando apenas HTML, CSS e JavaScript.
+          </p>
+
+          <div class="hero-actions">
+            <button class="primary-btn" onclick="showPage('loginPage')">Entrar como aluno</button>
+            <button class="secondary-btn" onclick="showPage('adminLoginPage')">Painel admin</button>
+            <button class="ghost-btn" onclick="showPage('certificateValidationPage')">Validar certificado</button>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <h3>Novidades da versão 3.0</h3>
+          <ul>
+            <li>Login de aluno criado pelo admin</li>
+            <li>Vários cursos no mesmo site</li>
+            <li>Editar, duplicar e ordenar aulas</li>
+            <li>Preview de vídeo no painel admin</li>
+            <li>Thumbnail personalizada</li>
+            <li>Quiz com 4 alternativas</li>
+            <li>Prova com cronômetro</li>
+            <li>Certificado com código</li>
+            <li>Menu inferior no celular</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="landing-polish-section">
+        <div class="landing-polish-card">
+          <strong>100%</strong>
+          <span>GitHub Pages + Google Sheets</span>
+        </div>
+        <div class="landing-polish-card">
+          <strong>Admin</strong>
+          <span>controle central em planilha</span>
+        </div>
+        <div class="landing-polish-card">
+          <strong>EAD</strong>
+          <span>dados online e backup automático</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="certificateValidationPage" class="page">
+      <div class="auth-box">
+        <h2>Validar certificado</h2>
+        <p>Digite o código do certificado para verificar os dados salvos neste navegador.</p>
+
+        <label>Código do certificado</label>
+        <input type="text" id="certificateCodeInput" placeholder="Ex: CP-XXXXX-XXXXX" />
+
+        <button class="primary-btn full" onclick="validateCertificate()">Validar</button>
+        <button class="ghost-btn full" onclick="showPage('landingPage')">Voltar</button>
+
+        <div id="certificateValidationResult"></div>
+      </div>
+    </section>
+
+    <section id="loginPage" class="page">
+      <div class="auth-box">
+        <h2>Área do aluno</h2>
+        <p>Entre com o e-mail e a senha enviados pelo administrador.</p>
+
+        <label>E-mail</label>
+        <input type="email" id="studentEmail" placeholder="seuemail@gmail.com" autocomplete="username" />
+
+        <label>Senha</label>
+        <input type="password" id="studentPassword" placeholder="Digite sua senha" autocomplete="current-password" />
+
+        <button class="primary-btn full" onclick="loginStudent()">Entrar no curso</button>
+        <button class="ghost-btn full" onclick="showPage('landingPage')">Voltar</button>
+
+        <div class="info-box">
+          O acesso do aluno é criado pelo administrador no painel admin.
+        </div>
+      </div>
+    </section>
+
+    <section id="adminLoginPage" class="page">
+      <div class="auth-box">
+        <h2>Painel administrativo</h2>
+        <p>Gerencie cursos, aulas, provas e alunos.</p>
+
+        <label>Senha do administrador</label>
+        <input type="password" id="adminPassword" placeholder="Digite a senha" />
+
+        <button class="primary-btn full" onclick="loginAdmin()">Entrar como admin</button>
+        <button class="ghost-btn full" onclick="showPage('landingPage')">Voltar</button>
+
+        <div class="info-box">
+          <strong>Senha padrão:</strong> admin123<br><small>Altere depois em Configurações.</small>
+        </div>
+      </div>
+    </section>
+
+    <section id="studentApp" class="page app-layout">
+      <aside class="sidebar">
+        <h3>Aluno</h3>
+        <button onclick="studentTab('studentDashboard')">Dashboard</button>
+        <button onclick="studentTab('studentCourses')">Meus cursos</button>
+        <button onclick="studentTab('studentCourseDetails')">Detalhes</button>
+        <button onclick="studentTab('studentLessons')">Aulas</button>
+        <button onclick="studentTab('studentLessonRoom')">Sala da aula</button>
+        <button onclick="studentTab('studentFavorites')">Favoritos</button>
+        <button onclick="studentTab('studentActivities')">Atividades</button>
+        <button onclick="studentTab('studentQuiz')">Quiz</button>
+        <button onclick="studentTab('studentExam')">Provas</button>
+        <button onclick="studentTab('studentGrades')">Notas</button>
+        <button onclick="studentTab('studentCertificate')">Certificado</button>
+        <button onclick="studentTab('studentProfile')">Perfil</button>
+      </aside>
+
+      <section class="content">
+        <div id="studentDashboard" class="tab active">
+          <div class="section-title">
+            <h2>Dashboard</h2>
+            <p id="welcomeStudent"></p>
+          </div>
+
+          <div class="grid">
+            <div class="stat-card">
+              <h3 id="statLessons">0%</h3>
+              <p>Progresso</p>
+            </div>
+            <div class="stat-card">
+              <h3 id="statAverage">0</h3>
+              <p>Média final</p>
+            </div>
+            <div class="stat-card">
+              <h3 id="statStatus">Em andamento</h3>
+              <p>Status</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Curso selecionado</h3>
+            <div id="selectedCourseBox"></div>
+          </div>
+
+          <div class="card">
+            <h3>Progresso geral</h3>
+            <div class="progress-bar">
+              <div id="globalProgress" class="progress">0%</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Continuar estudando</h3>
+            <div id="continueBox"></div>
+          </div>
+        </div>
+
+        <div id="studentCourses" class="tab">
+          <div class="section-title">
+            <h2>Meus cursos</h2>
+            <p>Escolha qual curso deseja estudar.</p>
+          </div>
+          <div id="studentCoursesList"></div>
+        </div>
+
+        <div id="studentCourseDetails" class="tab">
+          <div class="section-title">
+            <h2>Detalhes do curso</h2>
+            <p>Veja as informações completas do curso selecionado.</p>
+          </div>
+          <div id="courseDetailsBox"></div>
+        </div>
+
+        <div id="studentLessons" class="tab">
+          <div class="section-title">
+            <h2>Videoaulas</h2>
+            <p>A próxima aula libera após concluir a anterior.</p>
+          </div>
+
+          <div class="toolbar">
+            <input type="text" id="lessonSearch" placeholder="Pesquisar aula..." oninput="renderStudent()" />
+            <select id="moduleFilter" onchange="renderStudent()"></select>
+          </div>
+
+          <div id="studentLessonsList"></div>
+        </div>
+
+        <div id="studentLessonRoom" class="tab">
+          <div class="section-title">
+            <h2>Sala da aula</h2>
+            <p>Assista, faça anotações e avance pelas aulas.</p>
+          </div>
+          <div id="lessonRoomBox"></div>
+        </div>
+
+        <div id="studentFavorites" class="tab">
+          <div class="section-title">
+            <h2>Aulas favoritas</h2>
+            <p>Suas aulas marcadas para revisar depois.</p>
+          </div>
+          <div id="favoritesBox"></div>
+        </div>
+
+        <div id="studentActivities" class="tab">
+          <div class="section-title">
+            <h2>Atividades</h2>
+            <p>Cada atividade permite no máximo 2 tentativas.</p>
+          </div>
+          <div id="studentActivitiesList"></div>
+        </div>
+
+        <div id="studentQuiz" class="tab">
+          <div class="section-title">
+            <h2>Quiz</h2>
+            <p>O quiz permite no máximo 2 tentativas.</p>
+          </div>
+          <div id="studentQuizBox"></div>
+        </div>
+
+        <div id="studentExam" class="tab">
+          <div class="section-title">
+            <h2>Provas</h2>
+            <p>A prova normal tem 1 tentativa e cronômetro.</p>
+          </div>
+          <div id="studentExamBox"></div>
+        </div>
+
+        <div id="studentGrades" class="tab">
+          <div class="section-title">
+            <h2>Notas</h2>
+            <p>Acompanhe seu desempenho.</p>
+          </div>
+          <div id="gradesBox"></div>
+        </div>
+
+        <div id="studentCertificate" class="tab">
+          <div class="section-title">
+            <h2>Certificado</h2>
+            <p>Disponível quando aprovado.</p>
+          </div>
+          <div id="certificateBox"></div>
+        </div>
+        <div id="studentProfile" class="tab">
+          <div class="section-title">
+            <h2>Meu perfil</h2>
+            <p>Veja seus dados de acesso, cursos liberados e notificações.</p>
+          </div>
+          <div id="profileBox"></div>
+        </div>
+
+      </section>
+
+      <nav class="mobile-nav">
+        <button onclick="studentTab('studentDashboard')">Início</button>
+        <button onclick="studentTab('studentCourses')">Cursos</button>
+        <button onclick="studentTab('studentLessons')">Aulas</button>
+        <button onclick="studentTab('studentFavorites')">Favoritos</button>
+      </nav>
+    </section>
+
+    <section id="adminApp" class="page app-layout">
+      <aside class="sidebar admin">
+        <h3>Admin</h3>
+        <button onclick="adminTab('adminDashboard')">Dashboard</button>
+        <button onclick="adminTab('adminCourses')">Cursos</button>
+        <button onclick="adminTab('adminModules')">Módulos</button>
+        <button onclick="adminTab('adminLessons')">Aulas</button>
+        <button onclick="adminTab('adminActivities')">Atividades</button>
+        <button onclick="adminTab('adminCorrections')">Correções</button>
+        <button onclick="adminTab('adminQuiz')">Quiz</button>
+        <button onclick="adminTab('adminExam')">Provas</button>
+        <button onclick="adminTab('adminStudents')">Alunos</button>
+        <button onclick="adminTab('adminPayments')">Pagamentos</button>
+        <button onclick="adminTab('adminNotices')">Avisos</button>
+        <button onclick="adminTab('adminSettings')">Configurações</button>
+      </aside>
+
+      <section class="content">
+        <div id="adminDashboard" class="tab active">
+          <div class="section-title">
+            <h2>Painel do administrador</h2>
+            <p>Controle todo o conteúdo do site.</p>
+          </div>
+
+          <div class="grid">
+            <div class="stat-card">
+              <h3 id="adminCourseCount">0</h3>
+              <p>Cursos</p>
+            </div>
+            <div class="stat-card">
+              <h3 id="adminLessonCount">0</h3>
+              <p>Aulas</p>
+            </div>
+            <div class="stat-card">
+              <h3 id="adminStudentCount">0</h3>
+              <p>Alunos</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Resumo</h3>
+            <div id="adminSummary"></div>
+          </div>
+        </div>
+
+        <div id="adminCourses" class="tab">
+          <div class="section-title">
+            <h2>Cursos</h2>
+            <p>Cadastre vários cursos no mesmo site.</p>
+          </div>
+
+          <div class="card">
+            <input type="hidden" id="editingCourseId" />
+
+            <label>Nome do curso</label>
+            <input type="text" id="courseTitle" placeholder="Ex: Informática Básica" />
+
+            <label>Descrição</label>
+            <textarea id="courseDesc" rows="3" placeholder="Descrição do curso"></textarea>
+
+            <label>Carga horária</label>
+            <input type="text" id="courseHours" placeholder="Ex: 20 horas" />
+
+            <label>Professor responsável</label>
+            <input type="text" id="courseTeacher" placeholder="Nome do professor" />
+
+            <label>Instituição</label>
+            <input type="text" id="courseInstitution" placeholder="Nome da escola/instituição" />
+
+            <label>Nota mínima para aprovação</label>
+            <input type="number" id="coursePassingGrade" min="0" max="10" step="0.1" placeholder="Ex: 7" />
+
+            <label>Preço do curso</label>
+            <input type="text" id="coursePrice" placeholder="Ex: R$ 49,90" />
+
+            <label>Chave Pix do curso</label>
+            <input type="text" id="coursePix" placeholder="Sua chave Pix" />
+
+            <label>Logo da instituição</label>
+            <input type="text" id="courseLogo" placeholder="Link da logo" />
+
+            <label>Imagem/thumbnail do curso</label>
+            <input type="text" id="courseThumb" placeholder="Link de imagem" />
+
+            <button class="primary-btn" onclick="saveCourse()">Salvar curso</button>
+            <button class="ghost-btn" onclick="cancelCourseEdit()">Cancelar edição</button>
+          </div>
+
+          <div id="adminCoursesList"></div>
+        </div>
+
+        <div id="adminModules" class="tab">
+          <div class="section-title">
+            <h2>Módulos</h2>
+            <p>Organize aulas por curso e módulo.</p>
+          </div>
+
+          <div class="card">
+            <label>Curso</label>
+            <select id="moduleCourse"></select>
+
+            <label>Nome do módulo</label>
+            <input type="text" id="moduleTitle" placeholder="Ex: Módulo 1 - Introdução" />
+
+            <button class="primary-btn" onclick="addModule()">Adicionar módulo</button>
+          </div>
+
+          <div id="adminModulesList"></div>
+        </div>
+
+        <div id="adminLessons" class="tab">
+          <div class="section-title">
+            <h2>Aulas</h2>
+            <p>Cadastre, edite, duplique e visualize as videoaulas.</p>
+          </div>
+
+          <div class="card">
+            <input type="hidden" id="editingLessonId" />
+
+            <label>Curso</label>
+            <select id="lessonCourse" onchange="refreshLessonModuleOptions()"></select>
+
+            <label>Módulo</label>
+            <select id="lessonModule"></select>
+
+            <label>Título da aula</label>
+            <input type="text" id="lessonTitle" placeholder="Ex: Aula 1 - Introdução" />
+
+            <label>Descrição</label>
+            <textarea id="lessonDesc" rows="3" placeholder="Descreva o conteúdo da aula"></textarea>
+
+            <label>Tipo de vídeo</label>
+            <select id="lessonVideoType" onchange="previewAdminVideo()">
+              <option value="youtube">YouTube</option>
+              <option value="direct">Link direto MP4/WebM/OGG</option>
+              <option value="local">Arquivo local do dispositivo</option>
+            </select>
+
+            <label>Link do vídeo</label>
+            <input type="text" id="lessonVideoUrl" oninput="previewAdminVideo()" placeholder="YouTube, embed, .mp4 ou .webm" />
+
+            <label>Thumbnail da aula</label>
+            <input type="text" id="lessonThumb" placeholder="Link de imagem opcional" />
+
+            <label>Link de material PDF</label>
+            <input type="text" id="lessonPdf" placeholder="https://..." />
+
+            <label>Duração da aula</label>
+            <input type="text" id="lessonDuration" placeholder="Ex: 12 min" />
+
+            <label>Status da aula</label>
+            <select id="lessonStatus">
+              <option value="published">Publicada</option>
+              <option value="draft">Rascunho</option>
+              <option value="locked">Bloqueada</option>
+            </select>
+
+            <div class="lesson-actions">
+              <button class="primary-btn" onclick="saveLesson()">Salvar aula</button>
+              <button class="secondary-btn" onclick="previewAdminVideo()">Testar vídeo</button>
+              <button class="ghost-btn" onclick="cancelLessonEdit()">Cancelar edição</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Preview do vídeo</h3>
+            <div id="adminVideoPreview" class="video-placeholder">
+              <div>
+                <strong>Nenhum vídeo carregado</strong>
+                <p>Cole o link do vídeo e clique em testar.</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="adminLessonsList"></div>
+        </div>
+
+        <div id="adminActivities" class="tab">
+          <div class="section-title">
+            <h2>Atividades</h2>
+            <p>Atividades discursivas com 2 tentativas.</p>
+          </div>
+
+          <div class="card">
+            <input type="hidden" id="editingActivityId" />
+
+            <label>Curso</label>
+            <select id="activityCourse"></select>
+
+            <label>Título da atividade</label>
+            <input type="text" id="activityTitle" />
+
+            <label>Enunciado</label>
+            <textarea id="activityQuestion" rows="4"></textarea>
+
+            <button class="primary-btn" onclick="saveActivity()">Salvar atividade</button>
+            <button class="ghost-btn" onclick="cancelActivityEdit()">Cancelar edição</button>
+          </div>
+
+          <div id="adminActivitiesList"></div>
+        </div>
+
+        <div id="adminCorrections" class="tab">
+          <div class="section-title">
+            <h2>Correções pendentes</h2>
+            <p>Corrija atividades enviadas pelos alunos, atribua nota e comentário.</p>
+          </div>
+
+          <div class="toolbar">
+            <select id="correctionCourseFilter" onchange="renderAdmin()"></select>
+            <select id="correctionStatusFilter" onchange="renderAdmin()">
+              <option value="all">Todas</option>
+              <option value="pending">Pendentes</option>
+              <option value="corrected">Corrigidas</option>
+            </select>
+          </div>
+
+          <div id="correctionsList"></div>
+        </div>
+
+        <div id="adminQuiz" class="tab">
+          <div class="section-title">
+            <h2>Quiz</h2>
+            <p>Questões com 4 alternativas e 2 tentativas.</p>
+          </div>
+
+          <div class="card">
+            <input type="hidden" id="editingQuizId" />
+
+            <label>Curso</label>
+            <select id="quizCourse"></select>
+
+            <label>Pergunta</label>
+            <input type="text" id="quizQuestion" />
+
+            <label>Alternativa A</label>
+            <input type="text" id="quizA" />
+
+            <label>Alternativa B</label>
+            <input type="text" id="quizB" />
+
+            <label>Alternativa C</label>
+            <input type="text" id="quizC" />
+
+            <label>Alternativa D</label>
+            <input type="text" id="quizD" />
+
+            <label>Resposta correta</label>
+            <select id="quizCorrect">
+              <option value="a">A</option>
+              <option value="b">B</option>
+              <option value="c">C</option>
+              <option value="d">D</option>
+            </select>
+
+            <button class="primary-btn" onclick="saveQuizQuestion()">Salvar questão</button>
+            <button class="ghost-btn" onclick="cancelQuizEdit()">Cancelar edição</button>
+          </div>
+
+          <div id="adminQuizList"></div>
+        </div>
+
+        <div id="adminExam" class="tab">
+          <div class="section-title">
+            <h2>Provas</h2>
+            <p>Prova normal com uma tentativa e tempo configurável.</p>
+          </div>
+
+          <div class="card">
+            <h3>Configuração da prova</h3>
+
+            <label>Curso</label>
+            <select id="examCourse" onchange="renderAdmin()"></select>
+
+            <label>Tempo da prova em minutos</label>
+            <input type="number" id="examTime" min="1" placeholder="Ex: 20" />
+
+            <div class="lesson-actions">
+              <button class="primary-btn" onclick="saveExamSettings()">Salvar tempo</button>
+              <button class="secondary-btn" onclick="toggleExamRelease()">Liberar/Bloquear prova</button>
+            </div>
+
+            <p id="examReleaseText"></p>
+          </div>
+
+          <div class="card">
+            <h3>Questões da prova normal</h3>
+            <input type="hidden" id="editingExamId" />
+
+            <label>Pergunta</label>
+            <input type="text" id="examQuestion" />
+
+            <label>Alternativa A</label>
+            <input type="text" id="examA" />
+
+            <label>Alternativa B</label>
+            <input type="text" id="examB" />
+
+            <label>Alternativa C</label>
+            <input type="text" id="examC" />
+
+            <label>Alternativa D</label>
+            <input type="text" id="examD" />
+
+            <label>Resposta correta</label>
+            <select id="examCorrect">
+              <option value="a">A</option>
+              <option value="b">B</option>
+              <option value="c">C</option>
+              <option value="d">D</option>
+            </select>
+
+            <button class="primary-btn" onclick="saveExamQuestion('normal')">Salvar questão</button>
+          </div>
+
+          <div class="card">
+            <h3>Questões da recuperação</h3>
+            <input type="hidden" id="editingRecoveryId" />
+
+            <label>Pergunta</label>
+            <input type="text" id="recoveryQuestion" />
+
+            <label>Alternativa A</label>
+            <input type="text" id="recoveryA" />
+
+            <label>Alternativa B</label>
+            <input type="text" id="recoveryB" />
+
+            <label>Alternativa C</label>
+            <input type="text" id="recoveryC" />
+
+            <label>Alternativa D</label>
+            <input type="text" id="recoveryD" />
+
+            <label>Resposta correta</label>
+            <select id="recoveryCorrect">
+              <option value="a">A</option>
+              <option value="b">B</option>
+              <option value="c">C</option>
+              <option value="d">D</option>
+            </select>
+
+            <button class="primary-btn" onclick="saveExamQuestion('recovery')">Salvar questão</button>
+          </div>
+
+          <div id="adminExamList"></div>
+        </div>
+
+        <div id="adminStudents" class="tab">
+          <div class="section-title">
+            <h2>Logins dos alunos</h2>
+            <p>Crie o acesso do aluno e envie o e-mail e a senha para ele.</p>
+          </div>
+
+          <div class="card">
+            <input type="hidden" id="editingStudentEmail" />
+
+            <label>Nome do aluno</label>
+            <input type="text" id="adminStudentName" placeholder="Nome completo" />
+
+            <label>E-mail de login</label>
+            <input type="email" id="adminStudentEmail" placeholder="emaildoaluno@gmail.com" />
+
+            <label>Senha do aluno</label>
+            <input type="text" id="adminStudentPassword" placeholder="Crie ou gere uma senha" />
+
+            <label>Telefone</label>
+            <input type="text" id="adminStudentPhone" placeholder="Opcional" />
+
+            <label>Cidade</label>
+            <input type="text" id="adminStudentCity" placeholder="Opcional" />
+
+            <label>Curso inicial</label>
+            <select id="adminStudentCourse"></select>
+
+            <label>Cursos liberados para este aluno</label>
+            <div id="adminStudentAllowedCourses" class="checkbox-list"></div>
+
+            <div class="lesson-actions">
+              <button class="secondary-btn" onclick="generateStudentPassword()">Gerar senha</button>
+              <button class="primary-btn" onclick="saveStudentLogin()">Salvar login</button>
+              <button class="ghost-btn" onclick="cancelStudentEdit()">Cancelar edição</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Importar alunos em massa</h3>
+            <p>Cole um aluno por linha no formato: Nome;email;senha;telefone;cidade</p>
+            <textarea id="bulkStudentsText" rows="6" placeholder="João;joao@email.com;123456;91999999999;Cametá"></textarea>
+            <button class="secondary-btn" onclick="bulkImportStudents()">Importar alunos</button>
+          </div>
+
+          <div id="studentsList"></div>
+        </div>
+
+        <div id="adminPayments" class="tab">
+          <div class="section-title">
+            <h2>Pagamentos manuais</h2>
+            <p>Controle Pix, comprovantes e liberação de cursos por aluno.</p>
+          </div>
+          <div id="paymentsList"></div>
+        </div>
+
+        <div id="adminNotices" class="tab">
+          <div class="section-title">
+            <h2>Avisos do professor</h2>
+            <p>Crie avisos que aparecem no painel do aluno.</p>
+          </div>
+
+          <div class="card">
+            <label>Curso</label>
+            <select id="noticeCourse"></select>
+
+            <label>Título do aviso</label>
+            <input type="text" id="noticeTitle" placeholder="Ex: Prova liberada" />
+
+            <label>Mensagem</label>
+            <textarea id="noticeMessage" rows="4" placeholder="Digite o aviso para os alunos"></textarea>
+
+            <button class="primary-btn" onclick="saveNotice()">Publicar aviso</button>
+          </div>
+
+          <div id="noticesList"></div>
+        </div>
+
+        <div id="adminSettings" class="tab">
+          <div class="section-title">
+            <h2>Configurações</h2>
+            <p>Backup, restauração e senha.</p>
+          </div>
+
+          <div class="card">
+            <h3>Senha do administrador</h3>
+            <label>Nova senha</label>
+            <input type="password" id="newAdminPassword" />
+            <button class="primary-btn" onclick="changeAdminPassword()">Alterar senha</button>
+          </div>
+
+          <div class="card">
+            <h3>Backup</h3>
+            <button class="secondary-btn" onclick="exportData()">Exportar dados</button>
+
+            <label>Importar backup JSON</label>
+            <input type="file" accept=".json,application/json" onchange="importData(event)" />
+          </div>
+
+          <div class="card">
+            <h3>Relatórios CSV</h3>
+            <p>Exporte dados para abrir no Excel ou Google Planilhas.</p>
+            <div class="lesson-actions">
+              <button class="secondary-btn" onclick="exportStudentsCSV()">Relatório de alunos</button>
+              <button class="secondary-btn" onclick="exportGradesCSV()">Relatório de notas</button>
+              <button class="secondary-btn" onclick="exportProgressCSV()">Relatório de progresso</button>
+              <button class="secondary-btn" onclick="exportPaymentsCSV()">Relatório de pagamentos</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Conexão em tempo real</h3>
+            <p>Cole aqui a URL do Web App do Google Apps Script para sincronizar os dados com sua planilha.</p>
+
+            <label>URL do Apps Script Web App</label>
+            <input type="text" id="remoteApiUrlInput" placeholder="https://script.google.com/macros/s/SEU_ID/exec" />
+
+            <div class="lesson-actions">
+              <button class="primary-btn" onclick="saveRemoteApiUrl()">Salvar URL</button>
+              <button class="secondary-btn" onclick="testRemoteConnection()">Testar conexão</button>
+              <button class="ghost-btn" onclick="forceSyncNow()">Sincronizar agora</button>
+              <button class="danger-btn" onclick="disableRemoteSync()">Desativar tempo real</button>
+            </div>
+
+            <div id="remoteStatusBox" class="info-box">
+              Status: usando dados locais até configurar a URL.
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Verificação do sistema</h3>
+            <p>Use para conferir se cursos, alunos, pagamentos e dados principais estão consistentes.</p>
+            <div class="lesson-actions">
+              <button class="secondary-btn" onclick="runSystemCheck()">Verificar sistema</button>
+              <button class="ghost-btn" onclick="repairLocalData()">Reparar dados locais</button>
+            </div>
+            <div id="systemCheckResult"></div>
+          </div>
+
+          <div class="card">
+            <h3>Limpeza</h3>
+            <button class="danger-btn" onclick="clearAllData()">Apagar tudo</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section id="helpModal" class="modal hidden">
+      <div class="modal-card">
+        <button class="close-btn" onclick="closeHelp()">×</button>
+        <h2>Ajuda rápida</h2>
+
+        <p><strong>YouTube:</strong></p>
+        <code>https://www.youtube.com/watch?v=ID</code><br>
+        <code>https://youtu.be/ID</code><br>
+        <code>https://www.youtube.com/embed/ID</code>
+
+        <p><strong>Vídeo direto:</strong></p>
+        <code>https://site.com/video.mp4</code>
+
+        <p>
+          Sem backend, os dados ficam no navegador. Use exportar/importar backup
+          para salvar e levar os dados para outro computador.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

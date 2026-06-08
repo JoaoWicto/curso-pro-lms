@@ -1,369 +1,197 @@
+# CursoPro 3.0 - GitHub Pages sem backend
 
-# CursoPro LMS — Produção Gratuita
+Site completo de cursos online feito com HTML, CSS e JavaScript.
 
-Versão preparada para publicar gratuitamente com:
+## Recursos
 
-- Render para o backend Node.js
-- Supabase ou Neon para PostgreSQL
-- Cloudinary para uploads de PDFs, imagens, vídeos e comprovantes
-- Pix manual com chave e QR Code cadastrados por você
-- Aprovação manual no painel admin
-- Multi-cursos
-- Aulas com PDF/vídeo
-- Quiz por aula
-- Certificado com código de validação
-- Relatórios administrativos
-
-## Login admin padrão
-
-```txt
-E-mail: admin@curso.local
-Senha: admin123
-```
-
-Troque isso nas variáveis de ambiente do Render.
-
----
-
-# Tutorial de publicação gratuita
-
-## Parte 1 — Criar banco PostgreSQL grátis no Supabase
-
-1. Acesse https://supabase.com
-2. Crie uma conta.
-3. Clique em New Project.
-4. Escolha nome, senha do banco e região.
-5. Depois que criar, vá em:
-   - Project Settings
-   - Database
-   - Connection string
-6. Copie a string de conexão.
-7. Use a conexão do pooler se o Render tiver problema com IPv6.
-
-A variável será:
-
-```txt
-DATABASE_URL=sua_url_postgres
-```
-
----
-
-## Parte 2 — Criar Cloudinary grátis para uploads
-
-1. Acesse https://cloudinary.com
-2. Crie conta grátis.
-3. No Dashboard, copie:
-   - Cloud name
-   - API Key
-   - API Secret
-
-No Render, você vai usar:
-
-```txt
-CLOUDINARY_CLOUD_NAME=seu_cloud_name
-CLOUDINARY_API_KEY=sua_api_key
-CLOUDINARY_API_SECRET=sua_api_secret
-```
-
-Se não configurar Cloudinary, o sistema salva em `/uploads`, mas no Render grátis isso não é ideal para produção.
-
----
-
-## Parte 3 — Testar no computador
-
-1. Instale Node.js 20 ou superior.
-2. Abra o terminal na pasta do projeto.
-3. Rode:
-
-```bash
-npm install
-```
-
-4. Copie `.env.example` para `.env`.
-
-No Windows:
-
-```bash
-copy .env.example .env
-```
-
-5. Preencha o `.env`.
-
-Exemplo:
-
-```txt
-PORT=3000
-NODE_ENV=development
-JWT_SECRET=uma_chave_grande
-DATABASE_URL=sua_url_do_supabase
-ADMIN_EMAIL=admin@curso.local
-ADMIN_PASSWORD=admin123
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-```
-
-6. Inicialize o banco:
-
-```bash
-npm run init-db
-```
-
-7. Rode:
-
-```bash
-npm start
-```
-
-8. Acesse:
-
-```txt
-http://localhost:3000
-```
-
----
-
-## Parte 4 — Publicar no Render sem usar GitHub
-
-Você pode publicar pelo Render usando upload/Blueprint ou conectando repositório. O modo mais estável costuma ser via GitHub, mas sem GitHub você pode:
-
-1. Criar conta em https://render.com
-2. Criar um novo Web Service usando opção de deploy manual/Blueprint quando disponível.
-3. Enviar este projeto compactado ou usar `render.yaml`.
-4. Configurar:
-
-```txt
-Build Command:
-npm install && npm run init-db
-
-Start Command:
-npm start
-```
-
-5. Variáveis obrigatórias:
-
-```txt
-NODE_ENV=production
-JWT_SECRET=coloque_uma_chave_grande
-DATABASE_URL=sua_url_postgres
-ADMIN_EMAIL=seu_email_admin
-ADMIN_PASSWORD=sua_senha_admin
-CLOUDINARY_CLOUD_NAME=seu_cloud
-CLOUDINARY_API_KEY=sua_key
-CLOUDINARY_API_SECRET=sua_secret
-```
-
-6. Clique em Deploy.
-
----
-
-## Parte 5 — Configurar Pix manual
-
-1. Entre como admin.
-2. Vá em Configurações.
-3. Coloque sua chave Pix.
-4. Envie a imagem do QR Code Pix gerado por você.
-5. Salve.
-
-Fluxo:
-- aluno compra
-- aluno vê chave/QR Pix
-- aluno envia comprovante
-- admin aprova
-- sistema libera o curso automaticamente
-
----
-
-## Parte 6 — O que não subir publicamente
-
-Nunca compartilhe:
-
-```txt
-.env
-JWT_SECRET
-DATABASE_URL
-CLOUDINARY_API_SECRET
-senha admin real
-```
-
----
-
-# Observações importantes
-
-- Render grátis pode "dormir" quando fica sem uso.
-- Supabase/Neon ficam responsáveis pelo banco.
-- Cloudinary guarda os arquivos fora do Render, melhor para vídeos e PDFs.
-- Para muitos alunos, use plano pago futuramente.
-
-
-## Versão definitiva visual limpa
-
-Esta versão refez o frontend do zero:
-- login corrigido
-- telas não somem
-- interface limpa para PC e mobile
-- admin organizado
-- aluno organizado
-- Pix, comprovante, aulas, PDF, vídeo, quiz e certificado mantidos
-
-Para publicar:
-```bash
-git add .
-git commit -m "frontend limpo definitivo"
-git push
-```
-Depois, no Render, clique em Deploy Latest Commit.
-
-
-## Melhorias desta versão
-
+- Vários cursos
+- Módulos por curso
+- Videoaulas
+- Suporte a YouTube
+- Suporte a link direto MP4/WebM/OGG
+- Suporte a vídeo local
+- Preview de vídeo no painel admin
+- Thumbnail de curso e aula
+- Editar, duplicar, excluir e ordenar aulas
+- Atividades com 2 tentativas
+- Quiz com 4 alternativas
+- Quiz com 2 tentativas
+- Prova normal com 1 tentativa
+- Cronômetro na prova
+- Recuperação
+- Certificado com código
+- Menu inferior no celular
 - Tema claro/escuro
-- Player profissional com lista lateral de aulas
-- Próxima aula e aula anterior
-- Dashboard admin com gráfico simples
-- Certificado com layout melhor e impressão/PDF
-- Mantém Pix manual, aprovação admin, PDFs, vídeos e quizzes
+- Backup e importação de dados
+- Troca de senha do admin
 
-Atualização:
-```bash
-git add .
-git commit -m "player tema dashboard certificado"
-git push
+## Senha padrão
+
+```txt
+admin123
 ```
-Depois faça Deploy Latest Commit no Render.
+
+## Como publicar
+
+1. Envie os arquivos para o GitHub.
+2. Vá em Settings > Pages.
+3. Escolha a branch main.
+4. Salve.
+
+## Observação
+
+Sem backend, os dados ficam salvos no navegador usando localStorage.
 
 
-## Melhorias adicionadas agora
+## Login dos alunos
 
-- Perfil do aluno com edição de nome, telefone e senha
-- Botão de excluir aluno no painel admin
-- Edição de cursos
-- Edição de aulas
-- Página de vendas com mais seções e FAQ
-- Certificado mantido com layout profissional
-- Backend atualizado com rotas PUT/DELETE necessárias
+Nesta versão, o aluno não cria a própria conta.
 
-Atualização:
-```bash
-git add .
-git commit -m "perfil editar cursos aulas excluir alunos"
-git push
+Fluxo correto:
+
+1. O administrador entra no painel.
+2. Vai em `Alunos`.
+3. Cria o nome, e-mail e senha do aluno.
+4. Copia os dados de acesso.
+5. Envia para o aluno por WhatsApp, e-mail ou mensagem.
+6. O aluno entra usando e-mail e senha.
+
+Como o site não usa backend, esses logins ficam salvos no navegador onde o admin criou os dados.
+
+
+## Versão 4.1 - Quiz e atividades profissionais
+
+Melhorias visuais adicionadas:
+
+- Cards profissionais para atividades
+- Status de tentativas
+- Histórico de respostas
+- Área de resposta mais elegante
+- Quiz com layout premium
+- Alternativas em formato de botão
+- Destaque visual na alternativa selecionada
+- Tela de resultado do quiz melhorada
+- Melhor visual no celular
+
+
+## Versão 4.2
+
+Novas melhorias:
+
+- Sala da aula dedicada
+- Botão para abrir aula em modo estudo
+- Anotações do aluno por aula
+- Favoritar aulas
+- Aba de aulas favoritas
+- Navegação aula anterior/próxima
+- Status da aula: publicada, rascunho ou bloqueada
+- O aluno só vê aulas publicadas
+- Dashboard do aluno mais completo
+- Relatórios CSV:
+  - alunos
+  - notas
+  - progresso
+- Correção do cronômetro da prova
+
+
+## Versão 4.3 - EAD profissional
+
+Novas funções:
+
+- Correção manual das atividades
+- Aba de correções pendentes no admin
+- Nota e comentário do professor
+- Atividades ficam pendentes até correção
+- Nota mínima configurável por curso
+- Professor e instituição por curso
+- Certificado com professor, instituição e assinatura
+- Validação de certificado por código
+- Importação de alunos em massa
+- Senha dos alunos ocultada por padrão na tabela
+
+
+## Versão 4.4 - Plataforma EAD completa
+
+Novas funções:
+
+- Liberação de cursos por aluno
+- Controle de pagamento manual/Pix
+- Status de pagamento: pendente, pago/liberado e bloqueado
+- Curso só libera após estar permitido e aprovado
+- Página de detalhes do curso
+- Perfil do aluno
+- Notificações internas
+- Avisos do professor por curso
+- Dashboard admin com pagamentos pendentes
+- Certificado com logo e QR Code visual
+- Relatório CSV de pagamentos
+- Melhor controle de acesso sem Firebase/Supabase
+
+Observação: como ainda é GitHub Pages sem backend, os dados continuam salvos no navegador.
+
+
+## CursoPro 4.5 - Correção final e polimento profissional
+
+Esta versão foca em estabilidade, acabamento visual e revisão geral.
+
+Melhorias adicionadas:
+
+- Verificação de sintaxe do JavaScript
+- Reparador de dados locais
+- Verificação do sistema no painel admin
+- Backup automático antes de ações perigosas
+- Tratamento para dados locais corrompidos
+- Validação melhor de e-mail e senha
+- Melhor compatibilidade ao copiar login/senha
+- Melhorias visuais gerais
+- Loading overlay
+- Cards de destaque na página inicial
+- Melhor foco/acessibilidade em botões e campos
+- Polimento no mobile
+- Animações leves
+- Melhor prevenção de ações inválidas
+
+Fluxo recomendado para testar:
+
+1. Entrar no admin com `admin123`
+2. Criar um curso
+3. Criar um aluno
+4. Liberar curso para o aluno
+5. Marcar pagamento como pago/liberado
+6. Entrar como aluno
+7. Assistir aula
+8. Enviar atividade
+9. Fazer quiz/prova
+10. Gerar certificado
+11. Validar certificado pelo código
+
+
+## CursoPro 5.0 - Tempo real grátis
+
+Esta versão adiciona controle online gratuito usando:
+
+- Google Sheets
+- Google Apps Script
+- GitHub Pages
+
+Leia o arquivo:
+
+```txt
+CONFIGURAR_TEMPO_REAL_GOOGLE_SHEETS.md
 ```
-Depois faça Deploy Latest Commit no Render.
 
+E copie o código:
 
-## Sistema de avaliações adicionado
-
-Tipos:
-- Quiz: 2 tentativas
-- Atividade: 2 tentativas
-- Prova normal: 1 tentativa
-- Prova de recuperação: 1 tentativa
-- Provas e avaliações podem ser liberadas/bloqueadas pelo administrador
-
-Rotas e tabelas adicionadas:
-- assessments
-- assessment_questions
-- assessment_attempts
-
-Atualização:
-```bash
-git add .
-git commit -m "sistema de provas atividades e tentativas"
-git push
+```txt
+google-apps-script/Code.gs
 ```
-Depois faça Deploy Latest Commit no Render.
 
+Depois cole a URL do Apps Script no painel admin do site.
 
-## Avaliações avançadas
+## Vantagem
 
-Adicionado:
-- Nota mínima por avaliação
-- Aprovado/Reprovado
-- Prova com tempo e envio automático
-- Recuperação aparece para aluno reprovado
-- Relatório de notas no admin
-- Exportação CSV de notas
+Agora você pode mandar o link para os alunos e acompanhar os dados centralizados na sua planilha Google.
 
-Atualização:
-```bash
-git add .
-git commit -m "avaliacoes avancadas notas tempo relatorio"
-git push
-```
-Depois faça Deploy Latest Commit no Render.
+## Observação
 
-
-## Pacote final plus
-
-Adicionado:
-- Editar aluno no admin
-- Bloquear/liberar aluno manualmente
-- Resetar senha do aluno
-- Histórico completo do aluno
-- Atividade escrita com texto e anexo
-- Correção manual com nota e feedback
-- Painel admin de correções
-- Certificado com QR Code de validação
-- Página pública `/certificado/CODIGO`
-
-Atualização:
-```bash
-git add .
-git commit -m "final plus aluno atividade certificado qr"
-git push
-```
-Depois faça Deploy Latest Commit no Render.
-
-
-## Etapa estabilidade premium
-
-Adicionado:
-- Dashboard premium com alertas
-- Backup JSON completo pelo admin
-- Notificações de pendências
-- Trava de certificado:
-  - pagamento aprovado
-  - 100% aulas concluídas
-  - média mínima
-  - sem avaliação reprovada
-- Botão fixo de compra no mobile
-- Indicadores de alunos, pendências e reprovados
-
-Atualização:
-```bash
-git add .
-git commit -m "estabilidade premium backup alertas certificado"
-git push
-```
-Depois faça Deploy Latest Commit no Render.
-
-
-## Correção auto-login admin
-
-Corrigido:
-- O site não entra mais direto como administrador por token salvo.
-- Token antigo de admin é limpo ao abrir o site.
-- Admin precisa clicar em Entrar e fazer login novamente.
-- Aluno ainda pode continuar logado normalmente.
-
-Caso ainda entre direto, limpe o cache/localStorage do navegador.
-
-
-## Correção do sistema de aulas
-
-- Link normal do YouTube agora é convertido automaticamente para embed.
-- Aceita youtu.be, youtube.com/watch, shorts e embed.
-- Upload de vídeo do PC continua usando Cloudinary quando configurado.
-- Upload de PDF mantido.
-- Formulário de aula mais claro.
-- Preview do YouTube antes de salvar.
-- Status da aula: publicada ou oculta.
-
-Atualização:
-```bash
-git add .
-git commit -m "corrigir aulas youtube upload video pdf"
-git push
-```
-Depois faça Deploy Latest Commit no Render.
+Continua sem Firebase, sem Supabase e sem pagar hospedagem.
