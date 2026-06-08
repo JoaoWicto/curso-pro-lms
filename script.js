@@ -2981,6 +2981,13 @@ function repairLocalData() {
    CURSOPRO 5.0 - GOOGLE SHEETS TEMPO REAL
 ============================ */
 
+
+/* ============================
+   CURSOPRO 5.1 - GOOGLE SHEETS SEM CORS
+   Leitura: JSONP
+   Escrita: form POST em iframe invisível
+============================ */
+
 let REMOTE_API_URL = localStorage.getItem("cursoProRemoteApiUrl") || "";
 let REMOTE_ENABLED = Boolean(REMOTE_API_URL);
 let REMOTE_LOADING = false;
@@ -2990,7 +2997,6 @@ let REMOTE_SAVE_TIMER = null;
 function setSyncIndicator(status, text) {
   const el = document.getElementById("syncIndicator");
   if (!el) return;
-
   el.className = `sync-indicator ${status}`;
   el.textContent = text;
 }
@@ -3012,8 +3018,8 @@ function saveRemoteApiUrl() {
   const input = document.getElementById("remoteApiUrlInput");
   const url = (input?.value || "").trim();
 
-  if (!url || !url.startsWith("https://script.google.com/")) {
-    toast("Cole uma URL válida do Google Apps Script.");
+  if (!url || !url.startsWith("https://script.google.com/") || !url.includes("/exec")) {
+    toast("Cole a URL /exec válida do Google Apps Script.");
     return;
   }
 
@@ -3036,39 +3042,97 @@ function disableRemoteSync() {
   toast("Tempo real desativado.");
 }
 
-async function remoteRequest(action, payload = {}) {
+function jsonpRequest(action, payload = {}) {
   const url = getRemoteApiUrl();
+  if (!url) return Promise.reject(new Error("URL do Apps Script não configurada."));
 
-  if (!url) throw new Error("URL do Apps Script não configurada.");
+  return new Promise((resolve, reject) => {
+    const callbackName = "cursoProJsonp_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    const scriptEl = document.createElement("script");
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Tempo esgotado. Confira se o Apps Script foi implantado como Web App e acesso 'Qualquer pessoa'."));
+    }, 20000);
 
-  const body = JSON.stringify({
-    action,
-    secret: localStorage.getItem("cursoProRemoteSecret") || "",
-    payload
+    function cleanup() {
+      clearTimeout(timer);
+      try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+      if (scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+    }
+
+    window[callbackName] = data => {
+      cleanup();
+      if (!data || data.ok === false) {
+        reject(new Error(data?.error || "Erro na resposta do Apps Script."));
+        return;
+      }
+      resolve(data);
+    };
+
+    const query = new URLSearchParams({
+      action,
+      callback: callbackName,
+      payload: JSON.stringify(payload || {})
+    });
+
+    scriptEl.onerror = () => {
+      cleanup();
+      reject(new Error("Falha ao carregar Apps Script. Use a URL /exec e acesso 'Qualquer pessoa'."));
+    };
+
+    scriptEl.src = `${url}?${query.toString()}`;
+    document.body.appendChild(scriptEl);
   });
+}
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
-    body
+function postNoCors(action, payload = {}) {
+  const url = getRemoteApiUrl();
+  if (!url) return Promise.reject(new Error("URL do Apps Script não configurada."));
+
+  return new Promise((resolve) => {
+    const iframeName = "cursoProPostFrame_" + Date.now();
+    const iframe = document.createElement("iframe");
+    iframe.name = iframeName;
+    iframe.style.display = "none";
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = url;
+    form.target = iframeName;
+    form.style.display = "none";
+
+    const inputAction = document.createElement("input");
+    inputAction.name = "action";
+    inputAction.value = action;
+
+    const inputPayload = document.createElement("input");
+    inputPayload.name = "payload";
+    inputPayload.value = JSON.stringify(payload || {});
+
+    form.appendChild(inputAction);
+    form.appendChild(inputPayload);
+
+    const cleanup = () => {
+      if (document.body.contains(iframe)) iframe.remove();
+      if (document.body.contains(form)) form.remove();
+    };
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        cleanup();
+        resolve({ ok: true });
+      }, 300);
+    };
+
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    form.submit();
+
+    setTimeout(() => {
+      cleanup();
+      resolve({ ok: true });
+    }, 2500);
   });
-
-  const text = await response.text();
-
-  let json;
-  try {
-    json = JSON.parse(text);
-  } catch (error) {
-    throw new Error("Resposta inválida do Apps Script: " + text.slice(0, 120));
-  }
-
-  if (!json.ok) {
-    throw new Error(json.error || "Erro na API.");
-  }
-
-  return json;
 }
 
 async function loadRemoteData() {
@@ -3078,8 +3142,8 @@ async function loadRemoteData() {
   setSyncIndicator("offline", "Sincronizando...");
 
   try {
-    const result = await remoteRequest("getData", {});
-    if (result.data) {
+    const result = await jsonpRequest("getData", {});
+    if (result.data && Object.keys(result.data).length) {
       localStorage.setItem("cursoProDataV3", JSON.stringify(result.data));
       REMOTE_LAST_SYNC = new Date().toLocaleString("pt-BR");
       localStorage.setItem("cursoProRemoteLastSync", REMOTE_LAST_SYNC);
@@ -3100,22 +3164,19 @@ async function loadRemoteData() {
 
 function scheduleRemoteSave(data) {
   if (!REMOTE_ENABLED) return;
-
   clearTimeout(REMOTE_SAVE_TIMER);
-  REMOTE_SAVE_TIMER = setTimeout(() => {
-    saveRemoteData(data);
-  }, 600);
+  REMOTE_SAVE_TIMER = setTimeout(() => saveRemoteData(data), 800);
 }
 
 async function saveRemoteData(data) {
   if (!REMOTE_ENABLED) return false;
 
   try {
-    await remoteRequest("saveData", { data });
+    await postNoCors("saveData", { data });
     REMOTE_LAST_SYNC = new Date().toLocaleString("pt-BR");
     localStorage.setItem("cursoProRemoteLastSync", REMOTE_LAST_SYNC);
     setSyncIndicator("online", "Online");
-    updateRemoteStatusBox(`Status: dados salvos no Google Sheets.<br>Última sincronização: ${REMOTE_LAST_SYNC}`, "online");
+    updateRemoteStatusBox(`Status: dados enviados ao Google Sheets.<br>Última sincronização: ${REMOTE_LAST_SYNC}`, "online");
     return true;
   } catch (error) {
     console.warn("Erro ao salvar remoto:", error);
@@ -3129,10 +3190,8 @@ async function testRemoteConnection() {
   const input = document.getElementById("remoteApiUrlInput");
   const url = (input?.value || getRemoteApiUrl()).trim();
 
-  if (!url) {
-    toast("Cole a URL do Apps Script.");
-    return;
-  }
+  if (!url) return toast("Cole a URL do Apps Script.");
+  if (!url.includes("/exec")) return toast("Use a URL que termina com /exec, não use /dev.");
 
   REMOTE_API_URL = url;
   REMOTE_ENABLED = true;
@@ -3141,7 +3200,7 @@ async function testRemoteConnection() {
   showLoading();
 
   try {
-    const result = await remoteRequest("ping", {});
+    const result = await jsonpRequest("ping", {});
     setSyncIndicator("online", "Online");
     updateRemoteStatusBox(`Status: conexão OK.<br>${escapeHtml(result.message || "Apps Script respondeu corretamente.")}`, "online");
     toast("Conexão funcionando.");
@@ -3155,10 +3214,7 @@ async function testRemoteConnection() {
 }
 
 async function forceSyncNow() {
-  if (!getRemoteApiUrl()) {
-    toast("Configure a URL do Apps Script primeiro.");
-    return;
-  }
+  if (!getRemoteApiUrl()) return toast("Configure a URL do Apps Script primeiro.");
 
   showLoading();
 
@@ -3166,19 +3222,19 @@ async function forceSyncNow() {
     await loadRemoteData();
     const data = getData();
     await saveRemoteData(data);
-    renderAfterRemoteSync();
-    toast("Sincronização concluída.");
+    setTimeout(async () => {
+      await loadRemoteData();
+      renderAfterRemoteSync();
+    }, 1200);
+    toast("Sincronização enviada.");
   } finally {
     hideLoading();
   }
 }
 
 function renderAfterRemoteSync() {
-  if (localStorage.getItem("adminLoggedV3") === "true") {
-    renderAdmin();
-  } else if (localStorage.getItem("currentStudentV3")) {
-    renderStudent();
-  }
+  if (localStorage.getItem("adminLoggedV3") === "true") renderAdmin();
+  else if (localStorage.getItem("currentStudentV3")) renderStudent();
 }
 
 function initRemoteSettingsUI() {
@@ -3224,4 +3280,4 @@ async function boot() {
 
 boot();
 
-console.log("CursoPro 5.0 tempo real carregado com sucesso.");
+console.log("CursoPro 5.1 sem CORS carregado com sucesso.");

@@ -195,3 +195,19 @@ Agora você pode mandar o link para os alunos e acompanhar os dados centralizado
 ## Observação
 
 Continua sem Firebase, sem Supabase e sem pagar hospedagem.
+
+
+## CursoPro 5.1 - Correção do erro CORS
+
+Esta versão corrige o erro:
+
+```txt
+Access to fetch at script.google.com has been blocked by CORS policy
+```
+
+Correção aplicada:
+
+- Leitura/teste via JSONP.
+- Salvamento via formulário invisível em iframe.
+- Não usa `fetch` direto para o Apps Script.
+- Continua gratuito com Google Sheets.

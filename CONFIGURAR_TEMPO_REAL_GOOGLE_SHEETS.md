@@ -64,3 +64,19 @@ google-apps-script/Code.gs
 ## Importante
 
 O Google Apps Script tem cotas de uso. Para um curso pequeno ou médio, funciona bem. Se você tiver muitos alunos acessando ao mesmo tempo, pode atingir limites do Google.
+
+
+## Correção importante da versão 5.1
+
+Se apareceu erro de CORS no console, use esta versão.
+
+Depois de trocar o código `Code.gs`, faça obrigatoriamente:
+
+1. Apps Script > Implantar.
+2. Gerenciar implantações.
+3. Editar implantação.
+4. Em versão, selecione `Nova versão`.
+5. Clique em `Implantar`.
+6. Copie novamente a URL `/exec`.
+
+Sem criar nova versão, o Google continua rodando o código antigo.

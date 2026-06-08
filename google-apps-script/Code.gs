@@ -1,16 +1,9 @@
 /**
- * CursoPro 5.0 - Google Sheets Backend gratuito
+ * CursoPro 5.1 - Google Sheets Backend gratuito sem CORS
  *
- * Como usar:
- * 1. Crie uma planilha no Google Sheets.
- * 2. Vá em Extensões > Apps Script.
- * 3. Apague o conteúdo padrão e cole este código.
- * 4. Clique em Salvar.
- * 5. Clique em Implantar > Nova implantação.
- * 6. Tipo: App da Web.
- * 7. Executar como: Eu.
- * 8. Quem tem acesso: Qualquer pessoa.
- * 9. Copie a URL /exec e cole no painel admin do CursoPro.
+ * Esta versão evita erro de CORS usando:
+ * - doGet + JSONP para leitura/teste
+ * - doPost via formulário invisível para salvar
  */
 
 const SHEET_DATA = 'DATA';
@@ -18,58 +11,76 @@ const SHEET_EVENTS = 'EVENTOS';
 const SHEET_BACKUPS = 'BACKUPS';
 
 function doGet(e) {
-  return jsonOutput({
-    ok: true,
-    message: 'CursoPro API online',
-    time: new Date().toISOString()
-  });
+  setupSheets();
+
+  const params = e && e.parameter ? e.parameter : {};
+  const action = params.action || 'ping';
+  const callback = params.callback || '';
+
+  let result;
+
+  try {
+    if (action === 'ping') {
+      result = {
+        ok: true,
+        message: 'CursoPro API online sem CORS',
+        time: new Date().toISOString()
+      };
+    } else if (action === 'getData') {
+      result = {
+        ok: true,
+        data: getStoredData()
+      };
+    } else {
+      result = {
+        ok: false,
+        error: 'Ação GET inválida: ' + action
+      };
+    }
+  } catch (error) {
+    result = {
+      ok: false,
+      error: String(error && error.message ? error.message : error)
+    };
+  }
+
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + JSON.stringify(result) + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
+  return jsonOutput(result);
 }
 
 function doPost(e) {
+  setupSheets();
+
   try {
-    const raw = e && e.postData && e.postData.contents ? e.postData.contents : '{}';
-    const body = JSON.parse(raw);
-    const action = body.action;
-    const payload = body.payload || {};
+    const params = e && e.parameter ? e.parameter : {};
+    let action = params.action;
+    let payload = {};
 
-    setupSheets();
-
-    if (action === 'ping') {
-      return jsonOutput({
-        ok: true,
-        message: 'Conexão funcionando',
-        time: new Date().toISOString()
-      });
-    }
-
-    if (action === 'getData') {
-      return jsonOutput({
-        ok: true,
-        data: getStoredData()
-      });
+    if (params.payload) {
+      payload = JSON.parse(params.payload);
+    } else if (e && e.postData && e.postData.contents) {
+      const body = JSON.parse(e.postData.contents);
+      action = body.action;
+      payload = body.payload || {};
     }
 
     if (action === 'saveData') {
       saveStoredData(payload.data || {});
       logEvent('saveData', 'Dados atualizados pelo site');
-      return jsonOutput({
-        ok: true,
-        message: 'Dados salvos'
-      });
+      return jsonOutput({ ok: true, message: 'Dados salvos' });
     }
 
     if (action === 'backup') {
       createBackup(payload.data || getStoredData());
-      return jsonOutput({
-        ok: true,
-        message: 'Backup criado'
-      });
+      return jsonOutput({ ok: true, message: 'Backup criado' });
     }
 
-    return jsonOutput({
-      ok: false,
-      error: 'Ação inválida: ' + action
-    });
+    return jsonOutput({ ok: false, error: 'Ação POST inválida: ' + action });
 
   } catch (error) {
     return jsonOutput({
@@ -125,10 +136,12 @@ function saveStoredData(data) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_DATA);
-
     const current = sheet.getRange('B2').getValue();
+
     if (current) {
-      createBackup(JSON.parse(current));
+      try {
+        createBackup(JSON.parse(current));
+      } catch (err) {}
     }
 
     sheet.getRange('B2').setValue(JSON.stringify(data));
@@ -147,8 +160,7 @@ function createBackup(data) {
 
   sheet.appendRow([new Date(), JSON.stringify(data)]);
 
-  // Mantém só os últimos 30 backups para não pesar a planilha.
-  const maxRows = 31; // cabeçalho + 30 backups
+  const maxRows = 31;
   if (lastRow > maxRows) {
     sheet.deleteRows(2, lastRow - maxRows);
   }
