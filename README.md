@@ -348,3 +348,22 @@ Corrigido:
 - Aluno ainda pode continuar logado normalmente.
 
 Caso ainda entre direto, limpe o cache/localStorage do navegador.
+
+
+## Correção do sistema de aulas
+
+- Link normal do YouTube agora é convertido automaticamente para embed.
+- Aceita youtu.be, youtube.com/watch, shorts e embed.
+- Upload de vídeo do PC continua usando Cloudinary quando configurado.
+- Upload de PDF mantido.
+- Formulário de aula mais claro.
+- Preview do YouTube antes de salvar.
+- Status da aula: publicada ou oculta.
+
+Atualização:
+```bash
+git add .
+git commit -m "corrigir aulas youtube upload video pdf"
+git push
+```
+Depois faça Deploy Latest Commit no Render.

@@ -123,6 +123,29 @@ async function uploadFile(file, folder = 'curso-pro') {
   return `/uploads/${safe}`;
 }
 
+
+function normalizeVideoUrl(url = '') {
+  if (!url) return '';
+  const raw = String(url).trim();
+  try {
+    const u = new URL(raw);
+    if (u.hostname.includes('youtu.be')) {
+      const id = u.pathname.replace('/', '').split('?')[0];
+      return id ? `https://www.youtube.com/embed/${id}` : raw;
+    }
+    if (u.hostname.includes('youtube.com')) {
+      if (u.pathname.includes('/embed/')) return raw;
+      if (u.pathname.includes('/shorts/')) {
+        const id = u.pathname.split('/shorts/')[1]?.split('/')[0];
+        return id ? `https://www.youtube.com/embed/${id}` : raw;
+      }
+      const id = u.searchParams.get('v');
+      return id ? `https://www.youtube.com/embed/${id}` : raw;
+    }
+    return raw;
+  } catch { return raw; }
+}
+
 function sign(user) {
   return jwt.sign({ id: user.id, role: user.role, name: user.name, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 }
@@ -410,9 +433,16 @@ app.post('/api/admin/lessons', auth, admin, upload.fields([{ name: 'video', maxC
   const { course_id, title, module, summary, content, video_url, active, position } = req.body;
   const video = await uploadFile(req.files?.video?.[0], 'curso-pro/videos');
   const pdf = await uploadFile(req.files?.pdf?.[0], 'curso-pro/pdfs');
-  const result = await query('INSERT INTO lessons (course_id,title,module,summary,content,video_url,video_file,pdf_file,active,position) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id', [course_id, title, module || '', summary || '', content || '', video_url || '', video, pdf, active === '0' ? false : true, Number(position || 0)]);
+  const result = await query('INSERT INTO lessons (course_id,title,module,summary,content,video_url,video_file,pdf_file,active,position) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id', [course_id, title, module || '', summary || '', content || '', normalizeVideoUrl(video_url), video, pdf, active === '0' ? false : true, Number(position || 0)]);
   await log(req.user.id, `Aula criada: ${title}`);
   res.json({ id: result.rows[0].id });
+});
+
+
+app.get('/api/admin/lessons/:id', auth, admin, async (req, res) => {
+  const lesson = await one('SELECT * FROM lessons WHERE id=$1', [Number(req.params.id)]);
+  if (!lesson) return res.status(404).json({ error: 'Aula não encontrada' });
+  res.json({ lesson });
 });
 
 app.put('/api/admin/lessons/:id', auth, admin, upload.fields([{ name: 'video', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]), async (req, res) => {
@@ -423,7 +453,7 @@ app.put('/api/admin/lessons/:id', auth, admin, upload.fields([{ name: 'video', m
   const video = req.files?.video?.[0] ? await uploadFile(req.files.video[0], 'curso-pro/videos') : old.video_file;
   const pdf = req.files?.pdf?.[0] ? await uploadFile(req.files.pdf[0], 'curso-pro/pdfs') : old.pdf_file;
   await query('UPDATE lessons SET title=$1,module=$2,summary=$3,content=$4,video_url=$5,video_file=$6,pdf_file=$7,active=$8,position=$9 WHERE id=$10', [
-    title || old.title, module || '', summary || '', content || '', video_url || '', video, pdf, active === '0' ? false : true, Number(position || 0), id
+    title || old.title, module || '', summary || '', content || '', normalizeVideoUrl(video_url), video, pdf, active === '0' ? false : true, Number(position || 0), id
   ]);
   await log(req.user.id, `Aula editada: ${title || old.title}`);
   res.json({ ok: true });
