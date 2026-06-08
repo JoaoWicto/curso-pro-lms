@@ -211,3 +211,24 @@ Correção aplicada:
 - Salvamento via formulário invisível em iframe.
 - Não usa `fetch` direto para o Apps Script.
 - Continua gratuito com Google Sheets.
+
+
+## CursoPro 5.2 - Curso de Informática Básica 4 meses
+
+Conteúdo adicionado:
+
+- 20 aulas organizadas em 4 meses.
+- 10 perguntas de quiz por aula.
+- 5 atividades discursivas por aula.
+- 4 provas mensais.
+- Cada prova mensal possui 20 questões.
+- Prova do mês 1 libera após 30 dias.
+- Prova do mês 2 libera após 60 dias.
+- Prova do mês 3 libera após 90 dias.
+- Prova do mês 4 libera após 120 dias.
+- Mesmo que o aluno termine as aulas antes, a prova continua bloqueada até o mês correto.
+
+Se o navegador já tiver dados antigos, use uma destas opções:
+
+1. Admin > Configurações > Apagar tudo, para carregar o novo conteúdo padrão.
+2. Importar o arquivo `dados_curso_informatica_4_meses.json` como backup de dados.
